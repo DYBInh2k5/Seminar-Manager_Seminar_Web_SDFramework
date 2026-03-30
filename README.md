@@ -35,6 +35,7 @@ A Laravel-based student seminar management system built for classroom seminar/de
 - `database/migrations` - schema definition
 - `database/seeders` - demo data setup
 - `tests/Feature` - project behavior tests
+- `DATABASE.md` - database explanation and relationship guide
 
 ## Demo Accounts
 
