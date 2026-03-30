@@ -2,6 +2,17 @@
 
 A Laravel-based student seminar management system built for classroom seminar/demo use. The project showcases a complete seminar workflow with topic management, student registration, report submission, presentation scheduling, grading, analytics, and admin user management.
 
+## Documentation
+
+Detailed project documentation is available in these files:
+
+- `PROJECT_OVERVIEW.md` - business context, goals, roles, and use cases
+- `DATABASE.md` - database explanation, relationships, and ERD
+- `ARCHITECTURE.md` - Laravel structure and application layers
+- `API_FLOW.md` - route flow and database impact by feature
+- `SEMINAR_SCRIPT.md` - ready-to-use seminar presentation script
+- `README-DEMO.md` - quick demo guide
+
 ## Features
 
 - Role-based authentication for `admin`, `lecturer`, and `student`
@@ -35,7 +46,46 @@ A Laravel-based student seminar management system built for classroom seminar/de
 - `database/migrations` - schema definition
 - `database/seeders` - demo data setup
 - `tests/Feature` - project behavior tests
+- `PROJECT_OVERVIEW.md` - project description and business context
 - `DATABASE.md` - database explanation and relationship guide
+- `ARCHITECTURE.md` - system architecture notes
+- `API_FLOW.md` - route and request flow guide
+- `SEMINAR_SCRIPT.md` - presentation speaking script
+
+## Core Workflow
+
+The main seminar flow in the system is:
+
+1. Lecturer creates a topic.
+2. Student registers for the topic.
+3. Lecturer approves or rejects the registration.
+4. Student uploads the seminar report.
+5. Lecturer schedules the presentation.
+6. Lecturer publishes the score and comment.
+
+The central database table in this workflow is `registrations`, because it connects the student, topic, submission, presentation, and score records.
+
+## Role Permissions
+
+### Admin
+
+- manage users
+- access full dashboard data
+- manage seminar records across the system
+
+### Lecturer
+
+- create and manage topics
+- review registrations
+- schedule presentations
+- assign scores and comments
+
+### Student
+
+- browse topics
+- register for topics
+- upload reports
+- review schedule and grading results
 
 ## Demo Accounts
 
@@ -143,6 +193,15 @@ This project is suitable for:
 - coursework submission
 - demonstrating how Laravel Boost can support real project development
 
+## Suggested Repository Improvements
+
+If you continue polishing the GitHub repository later, good next additions would be:
+
+- screenshots or GIF previews
+- deployment instructions
+- future improvement roadmap
+- contributor guide
+
 ## License
 
-This project is open-sourced under the MIT license.
+This project is open-sourced under the MIT license. See `LICENSE`.
