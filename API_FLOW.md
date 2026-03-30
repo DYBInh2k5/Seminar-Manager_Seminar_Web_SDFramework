@@ -1,6 +1,8 @@
 # API and Route Flow
 
-This project is a server-rendered Laravel web application, so it does not expose a separate REST API for frontend JavaScript clients. Instead, the main business flow happens through Laravel web routes.
+This project is primarily a server-rendered Laravel web application, so it does not expose a separate REST API for frontend JavaScript clients. Instead, the main business flow happens through Laravel web routes.
+
+The current React usage is limited to the dashboard analytics section, and the page receives that data directly from the Laravel view rather than from a dedicated API endpoint.
 
 This file explains which route performs which action and which database tables are affected.
 
@@ -54,6 +56,7 @@ Controller:
 Purpose:
 
 - show overall system statistics and user-specific information
+- provide structured analytics data to the React dashboard module
 
 Reads from:
 
@@ -67,6 +70,11 @@ Reads from:
 Writes to:
 
 - none
+
+Frontend note:
+
+- this route still returns a Blade page
+- React mounts inside the dashboard page for analytics only
 
 ### Topics
 

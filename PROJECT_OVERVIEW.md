@@ -147,9 +147,26 @@ Responsibilities:
 
 - Framework: Laravel 13
 - Language: PHP 8.3
-- View layer: Blade
+- Frontend approach: Laravel Blade with a React-powered analytics module
 - Database: SQLite for local/demo setup
 - Test framework: PHPUnit feature tests
+
+## Frontend Strategy
+
+The project uses a hybrid frontend approach instead of a full React SPA.
+
+Current design:
+
+- Laravel Blade renders the main pages, forms, and workflow screens
+- React enhances the dashboard analytics area with more interactive behavior
+- Vite is used to build frontend assets when JavaScript is enabled
+
+Why this is a good fit:
+
+- it keeps the Laravel workflow easy to explain in a seminar
+- it avoids rewriting the whole system into a separate frontend
+- it still demonstrates that the project can integrate React in a practical way
+- it provides a realistic example of progressive enhancement
 
 ## Why This Project Works Well for a Seminar
 
@@ -176,3 +193,5 @@ If you want to present the system in class, this is the simplest story:
 7. Show the dashboard and printable summary.
 
 That flow demonstrates nearly every important table and feature in the project.
+
+If you want to specifically mention React during the demo, open the dashboard and explain that the analytics module is rendered with React while the rest of the system remains server-rendered with Laravel.

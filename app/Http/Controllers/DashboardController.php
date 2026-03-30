@@ -54,6 +54,24 @@ class DashboardController extends Controller
             ->latest()
             ->get();
 
+        $dashboardAnalytics = [
+            'statusBreakdown' => [
+                'pending' => (int) ($statusBreakdown['pending'] ?? 0),
+                'approved' => (int) ($statusBreakdown['approved'] ?? 0),
+                'rejected' => (int) ($statusBreakdown['rejected'] ?? 0),
+            ],
+            'roleBreakdown' => [
+                'admin' => (int) ($roleBreakdown['admin'] ?? 0),
+                'lecturer' => (int) ($roleBreakdown['lecturer'] ?? 0),
+                'student' => (int) ($roleBreakdown['student'] ?? 0),
+            ],
+            'topLecturers' => $topLecturers->map(fn (User $lecturer) => [
+                'name' => $lecturer->name,
+                'topicsCount' => (int) $lecturer->topics_count,
+                'approvedRegistrationsCount' => (int) $lecturer->approved_registrations_count,
+            ])->values(),
+        ];
+
         $pendingForReview = Registration::with(['topic', 'student'])
             ->where('status', 'pending')
             ->whereHas('topic', function ($query) use ($user) {
@@ -69,6 +87,7 @@ class DashboardController extends Controller
             'statusBreakdown',
             'roleBreakdown',
             'topLecturers',
+            'dashboardAnalytics',
             'myTopics',
             'myRegistrations',
             'pendingForReview'

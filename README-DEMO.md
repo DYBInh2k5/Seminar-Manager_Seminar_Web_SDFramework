@@ -2,7 +2,7 @@
 
 ## Implemented features
 - Role-based login for admin, lecturer, and student
-- Dashboard overview with analytics cards and lecturer leaderboard
+- Dashboard overview with React-powered analytics and lecturer leaderboard
 - Seminar topic CRUD
 - Topic search and filtering
 - Admin lecturer assignment for topics
@@ -24,6 +24,8 @@
 ## Run the project
 ```bash
 cd seminar-manager
+npm install
+npm run dev
 php artisan serve
 ```
 
@@ -34,7 +36,10 @@ Open your browser at:
 This project currently uses:
 - SQLite in the temp folder to avoid Windows path issues
 - Blade compiled views in the temp folder to avoid view compilation issues
+- Blade for the main UI and React for the dashboard analytics module
 - The default Laravel `log` mail driver, so outgoing mail is written to logs rather than sent externally
+
+If the frontend assets are not running yet, the application still works because React is used as an enhancement layer instead of a hard requirement for the full UI.
 
 If you need to reset the demo data:
 ```bash

@@ -40,6 +40,8 @@ The sixth feature is grading. Lecturers can assign a final score and leave a com
 
 The project also includes dashboard analytics, printable topic summary pages, and admin user management.
 
+For the frontend, I used a hybrid approach. The main application uses Laravel Blade, while the dashboard analytics section is enhanced with React for more interactive presentation.
+
 ## Database Design
 
 The most important table in the project is `registrations`.
@@ -58,7 +60,8 @@ This project follows Laravel MVC structure:
 
 - models define the data and relationships
 - controllers handle the logic
-- Blade views render the interface
+- Blade views render the main interface
+- React enhances the analytics part of the dashboard
 - migrations define the schema
 - seeders provide demo data
 
@@ -88,6 +91,7 @@ Laravel is a strong framework for this kind of project because it provides:
 - Eloquent ORM
 - migrations and seeders
 - Blade templating
+- smooth integration with React through Vite when interactive modules are needed
 - testing support
 
 That makes it a good choice for building a structured academic management system.
@@ -110,4 +114,4 @@ Thank you.
 
 If you need a faster ending version, you can say:
 
-Seminar Manager is a Laravel web application for managing the full academic seminar process. It supports topic management, student registration, report submission, presentation scheduling, grading, and admin control. The project demonstrates Laravel MVC architecture, relational database design, role-based authorization, and end-to-end workflow management in one system.
+Seminar Manager is a Laravel web application for managing the full academic seminar process. It supports topic management, student registration, report submission, presentation scheduling, grading, and admin control. The project demonstrates Laravel MVC architecture, relational database design, role-based authorization, hybrid Blade and React frontend integration, and end-to-end workflow management in one system.

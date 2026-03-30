@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'Seminar Manager' }}</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite('resources/js/app.js')
+    @endif
 </head>
 <body>
     <div class="shell">

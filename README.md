@@ -34,6 +34,7 @@ Detailed project documentation is available in these files:
 - Laravel 13
 - PHP 8.3
 - Blade templates
+- React for interactive dashboard analytics
 - SQLite for local/demo usage
 - PHPUnit feature tests
 
@@ -120,6 +121,8 @@ php artisan migrate:fresh --seed
 ### 4. Start the development server
 
 ```bash
+npm install
+npm run dev
 php artisan serve
 ```
 
@@ -133,6 +136,8 @@ This project is configured to work around Windows path issues on this machine:
 
 - SQLite is stored in a temp folder instead of the default project path
 - Compiled Blade views are stored in a temp folder
+- Frontend assets are optional at runtime, so the app still works in tests or before a Vite build finishes
+- On some Windows setups, Vite/Tailwind native binaries may be sensitive to special characters in the folder path
 
 If you move the project to another machine, review your `.env` settings for:
 

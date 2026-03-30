@@ -11,6 +11,8 @@ The project follows a standard Laravel MVC structure:
 - `Migrations` define the database schema
 - `Seeders` provide demo data
 
+On top of that Laravel structure, the dashboard includes a focused React module for interactive analytics.
+
 ## Application Layers
 
 ### Presentation Layer
@@ -18,6 +20,7 @@ The project follows a standard Laravel MVC structure:
 Main location:
 
 - `resources/views`
+- `resources/js`
 
 Purpose:
 
@@ -26,9 +29,20 @@ Purpose:
 - render topic, user, and scheduling forms
 - show topic details, report status, and grading information
 
+Frontend strategy:
+
+- Blade handles the main page layout and most user interface screens
+- React mounts only into the dashboard analytics section
+- Vite bundles the JavaScript entry point when frontend assets are running
+
 Main layout:
 
 - `resources/views/layouts/app.blade.php`
+
+Main React files:
+
+- `resources/js/app.js`
+- `resources/js/components/DashboardAnalytics.jsx`
 
 ### Routing Layer
 
@@ -196,6 +210,12 @@ The UI is built for simple demonstration and classroom use:
 
 This is not a complex design-system-heavy frontend. It is intentionally practical and easy to present.
 
+The React integration is intentionally small and purposeful:
+
+- it improves dashboard interactivity
+- it keeps the rest of the project easy to follow
+- it shows that Laravel can work with React without becoming a full SPA
+
 ## Testing Strategy
 
 Current test coverage focuses on feature behavior instead of low-level unit logic.
@@ -219,5 +239,6 @@ If someone wants to understand the project quickly, this is the best order:
 4. `app/Models`
 5. `app/Http/Controllers`
 6. `resources/views`
+7. `resources/js`
 
 That order moves from high-level overview to implementation detail.

@@ -13,45 +13,22 @@
     </section>
 
     <div class="grid two">
-        <section class="card">
-            <div class="section-head">
-                <div>
-                    <span class="eyebrow">Analytics</span>
-                    <h2>Registration status breakdown</h2>
-                </div>
-            </div>
-
-            <div class="stack-list">
-                @foreach (['pending', 'approved', 'rejected'] as $status)
-                    @php $count = $statusBreakdown[$status] ?? 0; @endphp
+        <div
+            id="dashboard-analytics-root"
+            class="analytics-shell"
+            data-dashboard='@json($dashboardAnalytics)'
+            data-show-leaderboard='@json(! auth()->user()->isStudent())'
+        >
+            <div class="card">
+                <div class="section-head">
                     <div>
-                        <div class="inline-actions">
-                            <strong>{{ ucfirst($status) }}</strong>
-                            <span class="muted small">{{ $count }}</span>
-                        </div>
-                        <div class="bar-track"><div class="bar-fill {{ $status }}" style="width: {{ max(8, $count * 12) }}px"></div></div>
+                        <span class="eyebrow">Analytics</span>
+                        <h2>Interactive dashboard is loading...</h2>
                     </div>
-                @endforeach
-            </div>
-        </section>
-
-        <section class="card">
-            <div class="section-head">
-                <div>
-                    <span class="eyebrow">People</span>
-                    <h2>User roles</h2>
                 </div>
+                <p class="muted">If JavaScript is disabled, refresh the page after enabling assets.</p>
             </div>
-
-            <div class="stack-list">
-                @foreach (['admin', 'lecturer', 'student'] as $role)
-                    <div class="list-item">
-                        <strong>{{ ucfirst($role) }}</strong>
-                        <span class="badge">{{ $roleBreakdown[$role] ?? 0 }}</span>
-                    </div>
-                @endforeach
-            </div>
-        </section>
+        </div>
     </div>
 
     @if (! auth()->user()->isStudent())
