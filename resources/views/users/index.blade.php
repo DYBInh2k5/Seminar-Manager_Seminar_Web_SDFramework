@@ -1,10 +1,26 @@
-﻿@extends('layouts.app', [
+@extends('layouts.app', [
     'title' => 'Users',
     'heading' => 'User management',
     'subheading' => 'Create accounts, assign roles, and manage seminar access.',
 ])
 
 @section('content')
+    <section class="page-intro">
+        <div>
+            <div class="kicker-nav">
+                <span>Administration</span>
+                <span>/</span>
+                <span class="active">User Directory</span>
+            </div>
+            <h2>User management</h2>
+            <p class="muted">Create, review, and maintain accounts for administrators, lecturers, and students from a single academic directory.</p>
+        </div>
+        <a href="{{ route('users.create') }}" class="button">
+            <span class="material-symbols-outlined">person_add</span>
+            <span>Create user</span>
+        </a>
+    </section>
+
     <section class="card filter-card">
         <form action="{{ route('users.index') }}" method="GET" class="filter-grid users-filter-grid">
             <label>
@@ -35,7 +51,7 @@
                 <span class="eyebrow">Admin</span>
                 <h2>All users</h2>
             </div>
-            <a href="{{ route('users.create') }}" class="button">Create user</a>
+            <span class="badge">{{ $users->count() }} shown</span>
         </div>
 
         <div class="table-wrap">

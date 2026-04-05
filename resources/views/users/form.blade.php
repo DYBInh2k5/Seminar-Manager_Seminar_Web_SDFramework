@@ -1,4 +1,14 @@
-﻿<section class="card form-card">
+<section class="card form-shell">
+    <div class="form-shell-copy">
+        <span class="eyebrow">Academic Access</span>
+        <h2>{{ $user ? 'Update account details' : 'Create a new user account' }}</h2>
+        <p class="muted">
+            {{ $user
+                ? 'Adjust identity, role, and password settings while keeping the account aligned with seminar permissions.'
+                : 'Provision a new administrator, lecturer, or student account with the correct access level for the portal.' }}
+        </p>
+    </div>
+
     <form action="{{ $action }}" method="POST" class="form">
         @csrf
         @if ($method !== 'POST')

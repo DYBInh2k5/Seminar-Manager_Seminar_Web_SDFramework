@@ -1,16 +1,28 @@
-﻿@extends('layouts.app', [
+@extends('layouts.app', [
     'title' => 'Presentation Schedule',
     'heading' => 'Update presentation schedule',
     'subheading' => 'Schedule the presentation for an approved student registration.',
 ])
 
 @section('content')
-    <section class="card form-card">
-        <div class="section-head">
-            <div>
-                <span class="eyebrow">Presentation Schedule</span>
-                <h2>{{ $registration->student->name }} · {{ $registration->topic->title }}</h2>
+    <section class="page-intro">
+        <div>
+            <div class="kicker-nav">
+                <a href="{{ route('topics.show', $registration->topic) }}">Topic Detail</a>
+                <span>/</span>
+                <span class="active">Presentation Schedule</span>
             </div>
+            <h2>Presentation schedule</h2>
+            <p class="muted">Set the seminar time, room, and review context for {{ $registration->student->name }} under {{ $registration->topic->title }}.</p>
+        </div>
+        <span class="badge approved">Approved registration</span>
+    </section>
+
+    <section class="card form-shell">
+        <div class="form-shell-copy">
+            <span class="eyebrow">Presentation Planning</span>
+            <h2>{{ $registration->student->name }} � {{ $registration->topic->title }}</h2>
+            <p class="muted">Use this schedule card to prepare the presentation slot and keep the topic detail page aligned with the final seminar calendar.</p>
         </div>
 
         <form action="{{ isset($presentation) ? route('presentations.update', $presentation) : route('presentations.store', $registration) }}" method="POST" class="form">

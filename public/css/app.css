@@ -1003,3 +1003,24 @@ th {
         min-height: 360px;
     }
 }
+
+.form-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.form-shell-copy {
+    padding: 0.25rem 0;
+}
+
+.form-shell-copy p {
+    max-width: 26rem;
+}
+
+@media (max-width: 980px) {
+    .form-shell {
+        grid-template-columns: 1fr;
+    }
+}

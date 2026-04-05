@@ -1,4 +1,14 @@
-﻿<section class="card form-card">
+<section class="card form-shell">
+    <div class="form-shell-copy">
+        <span class="eyebrow">Seminar Topic</span>
+        <h2>{{ $topic ? 'Refine seminar details' : 'Open a new seminar topic' }}</h2>
+        <p class="muted">
+            {{ $topic
+                ? 'Update the academic framing, registration availability, and assigned lecturer for this topic.'
+                : 'Define the topic title, narrative, lecturer ownership, and registration status before students start applying.' }}
+        </p>
+    </div>
+
     <form action="{{ $action }}" method="POST" class="form">
         @csrf
         @if ($method !== 'POST')

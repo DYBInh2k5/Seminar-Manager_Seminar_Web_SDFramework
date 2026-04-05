@@ -5,6 +5,19 @@
 ])
 
 @section('content')
+    <section class="page-intro">
+        <div>
+            <div class="kicker-nav">
+                <span>Assistant</span>
+                <span>/</span>
+                <span class="active">AI Conversation</span>
+            </div>
+            <h2>Seminar AI assistant</h2>
+            <p class="muted">Review saved conversations, ask role-aware questions, and use the assistant to understand workflow, architecture, and seminar progress.</p>
+        </div>
+        <span class="badge role">{{ auth()->user()->role }}</span>
+    </section>
+
     <section
         id="ai-chat-root"
         class="ai-chat-shell"
