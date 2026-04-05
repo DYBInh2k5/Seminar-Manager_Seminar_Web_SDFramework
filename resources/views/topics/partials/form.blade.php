@@ -25,6 +25,39 @@
             <textarea name="description" rows="7" required>{{ old('description', $topic?->description) }}</textarea>
         </label>
 
+        <div class="grid two compact-grid">
+            <label>
+                <span>Category</span>
+                <input type="text" name="category" value="{{ old('category', $topic?->category ?? 'Applied Research') }}" required>
+            </label>
+
+            <label>
+                <span>Semester</span>
+                <input type="text" name="semester" value="{{ old('semester', $topic?->semester ?? 'Fall 2026') }}" placeholder="Example: Fall 2026">
+            </label>
+        </div>
+
+        <div class="grid two compact-grid">
+            <label>
+                <span>Capacity</span>
+                <input type="number" name="capacity" min="1" max="20" value="{{ old('capacity', $topic?->capacity ?? 3) }}" required>
+            </label>
+
+            <label>
+                <span>Difficulty</span>
+                <select name="difficulty">
+                    <option value="beginner" @selected(old('difficulty', $topic?->difficulty ?? 'intermediate') === 'beginner')>Beginner</option>
+                    <option value="intermediate" @selected(old('difficulty', $topic?->difficulty ?? 'intermediate') === 'intermediate')>Intermediate</option>
+                    <option value="advanced" @selected(old('difficulty', $topic?->difficulty ?? 'intermediate') === 'advanced')>Advanced</option>
+                </select>
+            </label>
+        </div>
+
+        <label>
+            <span>Expected outcomes</span>
+            <textarea name="expected_outcomes" rows="4" placeholder="Summarize the skills, deliverables, or research outcomes students should achieve.">{{ old('expected_outcomes', $topic?->expected_outcomes) }}</textarea>
+        </label>
+
         @if (auth()->user()->isAdmin())
             <label>
                 <span>Assigned lecturer</span>

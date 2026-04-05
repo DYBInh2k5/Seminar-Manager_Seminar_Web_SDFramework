@@ -18,6 +18,8 @@ class UserManagementTest extends TestCase
             'name' => 'New Lecturer',
             'email' => 'new-lecturer@example.com',
             'role' => 'lecturer',
+            'department' => 'Software Engineering',
+            'cohort' => 'Faculty',
             'password' => 'password123',
         ]);
 
@@ -25,6 +27,7 @@ class UserManagementTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'new-lecturer@example.com',
             'role' => 'lecturer',
+            'department' => 'Software Engineering',
         ]);
     }
 

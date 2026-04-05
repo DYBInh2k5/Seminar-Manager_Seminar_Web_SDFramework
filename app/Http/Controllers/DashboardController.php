@@ -20,6 +20,7 @@ class DashboardController extends Controller
             'students' => User::where('role', 'student')->count(),
             'pending_registrations' => Registration::where('status', 'pending')->count(),
             'approved_registrations' => Registration::where('status', 'approved')->count(),
+            'open_slots' => max((int) Topic::query()->sum('capacity') - Registration::count(), 0),
         ];
 
         $statusBreakdown = Registration::query()
@@ -31,6 +32,19 @@ class DashboardController extends Controller
             ->selectRaw('role, count(*) as aggregate')
             ->groupBy('role')
             ->pluck('aggregate', 'role');
+
+        $departmentBreakdown = User::query()
+            ->whereNotNull('department')
+            ->selectRaw('department, count(*) as aggregate')
+            ->groupBy('department')
+            ->orderByDesc('aggregate')
+            ->pluck('aggregate', 'department');
+
+        $categoryBreakdown = Topic::query()
+            ->selectRaw('category, count(*) as aggregate')
+            ->groupBy('category')
+            ->orderByDesc('aggregate')
+            ->pluck('aggregate', 'category');
 
         $topLecturers = User::query()
             ->where('role', 'lecturer')
@@ -66,6 +80,14 @@ class DashboardController extends Controller
                 'lecturer' => (int) ($roleBreakdown['lecturer'] ?? 0),
                 'student' => (int) ($roleBreakdown['student'] ?? 0),
             ],
+            'departmentBreakdown' => $departmentBreakdown->map(fn ($count, $department) => [
+                'label' => $department,
+                'value' => (int) $count,
+            ])->values(),
+            'categoryBreakdown' => $categoryBreakdown->map(fn ($count, $category) => [
+                'label' => $category,
+                'value' => (int) $count,
+            ])->values(),
             'topLecturers' => $topLecturers->map(fn (User $lecturer) => [
                 'name' => $lecturer->name,
                 'topicsCount' => (int) $lecturer->topics_count,

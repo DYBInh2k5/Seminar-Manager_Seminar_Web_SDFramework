@@ -38,6 +38,16 @@
                 </select>
             </label>
 
+            <label>
+                <span>Department</span>
+                <select name="department">
+                    <option value="">All departments</option>
+                    @foreach ($departments as $department)
+                        <option value="{{ $department }}" @selected(($filters['department'] ?? '') === $department)>{{ $department }}</option>
+                    @endforeach
+                </select>
+            </label>
+
             <div class="inline-actions filter-actions">
                 <button type="submit" class="button">Apply filters</button>
                 <a href="{{ route('users.index') }}" class="button secondary">Reset</a>
@@ -57,13 +67,24 @@
         <div class="table-wrap">
             <table>
                 <thead>
-                    <tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr>
+                    <tr><th>Name</th><th>Email</th><th>Academic profile</th><th>Role</th><th></th></tr>
                 </thead>
                 <tbody>
                     @forelse ($users as $user)
                         <tr>
-                            <td>{{ $user->name }}</td>
+                            <td>
+                                {{ $user->name }}
+                                @if ($user->student_code)
+                                    <div class="muted small">{{ $user->student_code }}</div>
+                                @endif
+                            </td>
                             <td>{{ $user->email }}</td>
+                            <td>
+                                <div>{{ $user->department ?: 'No department' }}</div>
+                                @if ($user->cohort)
+                                    <div class="muted small">{{ $user->cohort }}</div>
+                                @endif
+                            </td>
                             <td><span class="badge">{{ $user->role }}</span></td>
                             <td class="actions">
                                 <a href="{{ route('users.edit', $user) }}" class="button secondary small">Edit</a>
@@ -77,7 +98,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="muted">No users found.</td></tr>
+                        <tr><td colspan="5" class="muted">No users found.</td></tr>
                     @endforelse
                 </tbody>
             </table>

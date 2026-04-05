@@ -28,6 +28,7 @@
         <article class="stat-card"><span>Students</span><strong>{{ $stats['students'] }}</strong></article>
         <article class="stat-card"><span>Pending</span><strong>{{ $stats['pending_registrations'] }}</strong></article>
         <article class="stat-card"><span>Approved</span><strong>{{ $stats['approved_registrations'] }}</strong></article>
+        <article class="stat-card"><span>Open Slots</span><strong>{{ $stats['open_slots'] }}</strong></article>
     </section>
 
     <div class="grid two">

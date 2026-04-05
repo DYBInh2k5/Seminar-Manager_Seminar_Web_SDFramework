@@ -60,6 +60,12 @@
                     <div class="sidebar-panel-label">Signed in as</div>
                     <strong>{{ auth()->user()->name }}</strong>
                     <span class="badge role">{{ auth()->user()->role }}</span>
+                    @if (auth()->user()->department)
+                        <div class="muted small">{{ auth()->user()->department }}</div>
+                    @endif
+                    @if (auth()->user()->cohort)
+                        <div class="muted small">{{ auth()->user()->cohort }}</div>
+                    @endif
                     <div class="muted small">{{ auth()->user()->email }}</div>
                 </div>
             @endauth

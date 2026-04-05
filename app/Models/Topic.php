@@ -11,6 +11,11 @@ class Topic extends Model
     protected $fillable = [
         'title',
         'description',
+        'category',
+        'capacity',
+        'semester',
+        'difficulty',
+        'expected_outcomes',
         'lecturer_id',
         'status',
     ];

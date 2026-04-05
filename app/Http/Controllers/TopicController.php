@@ -19,6 +19,8 @@ class TopicController extends Controller
             'q' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'in:open,closed'],
             'lecturer_id' => ['nullable', 'integer', 'exists:users,id'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'difficulty' => ['nullable', 'in:beginner,intermediate,advanced'],
         ]);
 
         $topics = Topic::with([
@@ -38,6 +40,8 @@ class TopicController extends Controller
             })
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when(($filters['lecturer_id'] ?? null) && ! $user->isLecturer(), fn ($query, $lecturerId) => $query->where('lecturer_id', $lecturerId))
+            ->when($filters['category'] ?? null, fn ($query, $category) => $query->where('category', $category))
+            ->when($filters['difficulty'] ?? null, fn ($query, $difficulty) => $query->where('difficulty', $difficulty))
             ->latest()
             ->get();
 
@@ -46,7 +50,13 @@ class TopicController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return view('topics.index', compact('topics', 'filters', 'lecturers'));
+        $categories = Topic::query()
+            ->select('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
+
+        return view('topics.index', compact('topics', 'filters', 'lecturers', 'categories'));
     }
 
     public function create(Request $request): View
@@ -163,6 +173,11 @@ class TopicController extends Controller
         return $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'min:20'],
+            'category' => ['required', 'string', 'max:100'],
+            'capacity' => ['required', 'integer', 'min:1', 'max:20'],
+            'semester' => ['nullable', 'string', 'max:100'],
+            'difficulty' => ['required', 'in:beginner,intermediate,advanced'],
+            'expected_outcomes' => ['nullable', 'string', 'max:3000'],
             'status' => ['required', 'in:open,closed'],
             'lecturer_id' => ['nullable', 'integer', 'exists:users,id'],
         ]);

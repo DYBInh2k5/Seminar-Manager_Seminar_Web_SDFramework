@@ -34,6 +34,23 @@
             </select>
         </label>
 
+        <div class="grid two compact-grid">
+            <label>
+                <span>Department</span>
+                <input type="text" name="department" value="{{ old('department', $user?->department) }}" placeholder="Example: Software Engineering">
+            </label>
+
+            <label>
+                <span>Cohort</span>
+                <input type="text" name="cohort" value="{{ old('cohort', $user?->cohort) }}" placeholder="Example: K2023">
+            </label>
+        </div>
+
+        <label>
+            <span>Student code</span>
+            <input type="text" name="student_code" value="{{ old('student_code', $user?->student_code) }}" placeholder="Optional for students">
+        </label>
+
         <label>
             <span>Password {{ $user ? '(leave blank to keep current password)' : '' }}</span>
             <input type="password" name="password" {{ $user ? '' : 'required' }}>

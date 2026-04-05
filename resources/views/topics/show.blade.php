@@ -32,8 +32,18 @@
 
             <div class="meta-grid">
                 <div><span class="label">Lecturer</span><strong>{{ $topic->lecturer->name }}</strong></div>
-                <div><span class="label">Registrations</span><strong>{{ $topic->registrations->count() }}</strong></div>
+                <div><span class="label">Registrations</span><strong>{{ $topic->registrations->count() }}/{{ $topic->capacity }}</strong></div>
+                <div><span class="label">Category</span><strong>{{ $topic->category }}</strong></div>
+                <div><span class="label">Difficulty</span><strong>{{ ucfirst($topic->difficulty) }}</strong></div>
+                <div><span class="label">Semester</span><strong>{{ $topic->semester ?: 'To be confirmed' }}</strong></div>
             </div>
+
+            @if ($topic->expected_outcomes)
+                <div class="note-box">
+                    <div class="label">Expected outcomes</div>
+                    <p class="muted small">{{ $topic->expected_outcomes }}</p>
+                </div>
+            @endif
 
             @if ((auth()->user()->isLecturer() && auth()->id() === $topic->lecturer_id) || auth()->user()->isAdmin())
                 <div class="inline-actions wrap-actions">

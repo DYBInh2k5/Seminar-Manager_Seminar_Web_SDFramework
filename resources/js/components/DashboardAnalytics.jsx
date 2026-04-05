@@ -29,10 +29,7 @@ function SummaryRow({ label, value, percent, color }) {
 }
 
 function SegmentCard({ title, eyebrow, description, items, colorMap, metricMode }) {
-    const total = useMemo(
-        () => items.reduce((sum, item) => sum + item.value, 0),
-        [items],
-    );
+    const total = useMemo(() => items.reduce((sum, item) => sum + item.value, 0), [items]);
 
     return (
         <section className="card analytics-card">
@@ -94,7 +91,14 @@ function Leaderboard({ lecturers }) {
     );
 }
 
-export default function DashboardAnalytics({ statusBreakdown, roleBreakdown, topLecturers, showLeaderboard }) {
+function buildPalette(items, fallback) {
+    return items.reduce((map, item, index) => {
+        map[item.key] = fallback[index % fallback.length];
+        return map;
+    }, {});
+}
+
+export default function DashboardAnalytics({ statusBreakdown, roleBreakdown, departmentBreakdown = [], categoryBreakdown = [], topLecturers, showLeaderboard }) {
     const [metricMode, setMetricMode] = useState('count');
 
     const statusItems = [
@@ -108,6 +112,21 @@ export default function DashboardAnalytics({ statusBreakdown, roleBreakdown, top
         { key: 'lecturer', label: 'Lecturer', value: roleBreakdown.lecturer ?? 0 },
         { key: 'student', label: 'Student', value: roleBreakdown.student ?? 0 },
     ];
+
+    const departmentItems = departmentBreakdown.map((item) => ({
+        key: item.label,
+        label: item.label,
+        value: item.value,
+    }));
+
+    const categoryItems = categoryBreakdown.map((item) => ({
+        key: item.label,
+        label: item.label,
+        value: item.value,
+    }));
+
+    const departmentColors = buildPalette(departmentItems, ['#1b4332', '#6f4e37', '#386641', '#bc6c25', '#5b4b8a']);
+    const categoryColors = buildPalette(categoryItems, ['#264653', '#2a9d8f', '#e9c46a', '#f4a261', '#8d99ae']);
 
     return (
         <>
@@ -154,6 +173,26 @@ export default function DashboardAnalytics({ statusBreakdown, roleBreakdown, top
                     description="This panel summarizes how the system is distributed across administrative, teaching, and student accounts."
                     items={roleItems}
                     colorMap={ROLE_COLORS}
+                    metricMode={metricMode}
+                />
+            </div>
+
+            <div className="grid two">
+                <SegmentCard
+                    title="Departments represented"
+                    eyebrow="Academic data"
+                    description="A quick snapshot of which departments and programs are currently represented in the portal."
+                    items={departmentItems}
+                    colorMap={departmentColors}
+                    metricMode={metricMode}
+                />
+
+                <SegmentCard
+                    title="Topic categories"
+                    eyebrow="Portfolio"
+                    description="This panel highlights how the seminar archive is distributed across topic categories."
+                    items={categoryItems}
+                    colorMap={categoryColors}
                     metricMode={metricMode}
                 />
             </div>

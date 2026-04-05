@@ -19,6 +19,10 @@ class RegistrationController extends Controller
             return back()->with('status', 'This topic is closed for registration.');
         }
 
+        if ($topic->registrations()->count() >= $topic->capacity) {
+            return back()->with('status', 'This topic has reached its registration capacity.');
+        }
+
         [$registration, $created] = tap(Registration::firstOrCreate(
             [
                 'topic_id' => $topic->id,

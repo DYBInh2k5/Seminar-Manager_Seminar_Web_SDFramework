@@ -27,6 +27,9 @@ Key columns:
 - `name`: full name
 - `email`: unique login email
 - `role`: application role, usually `admin`, `lecturer`, or `student`
+- `department`: academic department or functional unit
+- `student_code`: optional student identifier
+- `cohort`: academic intake or staff group
 - `password`: hashed password
 - `email_verified_at`: optional verification timestamp
 - `remember_token`: login persistence token
@@ -47,6 +50,11 @@ Key columns:
 - `id`: primary key
 - `title`: topic title
 - `description`: topic details
+- `category`: topic portfolio group
+- `capacity`: max number of students who can register
+- `semester`: academic semester label
+- `difficulty`: beginner, intermediate, or advanced
+- `expected_outcomes`: expected learning or project outcomes
 - `lecturer_id`: foreign key to `users.id`
 - `status`: topic state, currently defaults to `open`
 - `created_at`, `updated_at`
@@ -55,6 +63,7 @@ Meaning:
 
 - One lecturer can create many topics
 - One topic can receive many student registrations
+- Capacity can be used to limit registrations for a topic
 
 ### `registrations`
 
@@ -285,6 +294,9 @@ erDiagram
         string name
         string email UK
         string role
+        string department
+        string student_code
+        string cohort
         string password
         datetime email_verified_at
         datetime created_at
@@ -295,6 +307,11 @@ erDiagram
         bigint id PK
         string title
         text description
+        string category
+        int capacity
+        string semester
+        string difficulty
+        text expected_outcomes
         bigint lecturer_id FK
         string status
         datetime created_at
@@ -404,6 +421,11 @@ erDiagram
 - A row is created in `submissions`
 - It is linked to the registration through `registration_id`
 - Since `registration_id` is unique, only one active submission exists per registration
+
+### 4b. Lecturer reviews the report
+
+- The `submissions` row is updated with review status, review note, reviewer id, and review timestamp
+- If the student uploads a new revision later, the review fields are reset and `revision_number` increases
 
 ### 5. Lecturer schedules the presentation
 

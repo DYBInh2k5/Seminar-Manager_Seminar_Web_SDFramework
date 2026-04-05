@@ -18,6 +18,7 @@ Detailed project documentation is available in these files:
 - Role-based authentication for `admin`, `lecturer`, and `student`
 - Seminar topic CRUD
 - Topic search and filtering
+- Academic metadata for users and topics
 - Lecturer assignment for topics
 - Student topic registration
 - Report upload, review, resubmission, download, replacement, and deletion
@@ -26,6 +27,7 @@ Detailed project documentation is available in these files:
 - Scoring and feedback
 - Activity logs for key seminar actions
 - Dashboard analytics
+- Department and category breakdown analytics
 - AI chat assistant for seminar and project guidance with quick actions, markdown replies, and rate limiting
 - Admin user management
 - Printable topic summary page for browser PDF export
@@ -70,6 +72,12 @@ The main seminar flow in the system is:
 7. Lecturer schedules the presentation.
 8. Lecturer publishes the score and comment.
 
+The newer showcase data model also helps the app feel more like a real university portal:
+
+- users can include department, student code, and cohort
+- topics can include category, semester, capacity, difficulty, and expected outcomes
+- dashboard analytics now surface department and category distribution
+
 The central database table in this workflow is `registrations`, because it connects the student, topic, submission, presentation, and score records.
 
 ## Role Permissions
@@ -102,8 +110,13 @@ Use these seeded accounts after running migrations and seeders:
 
 - Admin: `admin@seminar.test` / `password`
 - Lecturer: `lecturer@seminar.test` / `password`
+- Lecturer 2: `lecturer2@seminar.test` / `password`
+- Lecturer 3: `lecturer3@seminar.test` / `password`
 - Student 1: `student1@seminar.test` / `password`
 - Student 2: `student2@seminar.test` / `password`
+- Student 3: `student3@seminar.test` / `password`
+- Student 4: `student4@seminar.test` / `password`
+- Student 5: `student5@seminar.test` / `password`
 
 ## Local Setup
 

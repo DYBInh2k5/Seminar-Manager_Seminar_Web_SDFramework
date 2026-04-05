@@ -15,6 +15,8 @@ if (dashboardRoot) {
             <DashboardAnalytics
                 statusBreakdown={dashboardData.statusBreakdown ?? {}}
                 roleBreakdown={dashboardData.roleBreakdown ?? {}}
+                departmentBreakdown={dashboardData.departmentBreakdown ?? []}
+                categoryBreakdown={dashboardData.categoryBreakdown ?? []}
                 topLecturers={dashboardData.topLecturers ?? []}
                 showLeaderboard={showLeaderboard}
             />

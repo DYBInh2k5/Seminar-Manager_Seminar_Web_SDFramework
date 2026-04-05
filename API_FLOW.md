@@ -169,12 +169,14 @@ Purpose:
 - search and filter topics
 - create and update topic information
 - assign lecturer ownership
+- maintain category, semester, capacity, difficulty, and expected outcomes
 
 Reads from:
 
 - `topics`
 - `users`
 - `registrations`
+- `activity_logs`
 
 Writes to:
 
@@ -339,6 +341,7 @@ Controller:
 Purpose:
 
 - admin-only user management
+- maintain academic profile fields such as department, student code, and cohort
 
 Reads from:
 

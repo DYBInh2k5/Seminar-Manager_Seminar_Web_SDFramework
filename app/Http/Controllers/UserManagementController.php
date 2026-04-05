@@ -17,6 +17,7 @@ class UserManagementController extends Controller
         $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:255'],
             'role' => ['nullable', 'in:admin,lecturer,student'],
+            'department' => ['nullable', 'string', 'max:150'],
         ]);
 
         $users = User::query()
@@ -27,10 +28,18 @@ class UserManagementController extends Controller
                 });
             })
             ->when($filters['role'] ?? null, fn ($query, $role) => $query->where('role', $role))
+            ->when($filters['department'] ?? null, fn ($query, $department) => $query->where('department', $department))
             ->latest()
             ->get();
 
-        return view('users.index', compact('users', 'filters'));
+        $departments = User::query()
+            ->whereNotNull('department')
+            ->select('department')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department');
+
+        return view('users.index', compact('users', 'filters', 'departments'));
     }
 
     public function create(): View
@@ -132,6 +141,14 @@ class UserManagementController extends Controller
                 Rule::unique('users', 'email')->ignore($user?->id),
             ],
             'role' => ['required', 'in:admin,lecturer,student'],
+            'department' => ['nullable', 'string', 'max:150'],
+            'student_code' => [
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('users', 'student_code')->ignore($user?->id),
+            ],
+            'cohort' => ['nullable', 'string', 'max:100'],
             'password' => $passwordRules,
         ]);
     }
