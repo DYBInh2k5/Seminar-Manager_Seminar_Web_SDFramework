@@ -5,6 +5,24 @@
 ])
 
 @section('content')
+    <section class="page-intro">
+        <div>
+            <div class="kicker-nav">
+                <span>Archives</span>
+                <span>/</span>
+                <span class="active">Curated Topics</span>
+            </div>
+            <h2>Seminar topics</h2>
+            <p class="muted">Review faculty ownership, search the current archive, and manage topic intake with a cleaner academic control panel.</p>
+        </div>
+        @if (auth()->user()->isLecturer() || auth()->user()->isAdmin())
+            <a href="{{ route('topics.create') }}" class="button">
+                <span class="material-symbols-outlined">add</span>
+                <span>Create topic</span>
+            </a>
+        @endif
+    </section>
+
     <section class="card filter-card">
         <form action="{{ route('topics.index') }}" method="GET" class="filter-grid">
             <label>
@@ -48,9 +66,7 @@
                 <span class="eyebrow">Seminar Topics</span>
                 <h2>All topics</h2>
             </div>
-            @if (auth()->user()->isLecturer() || auth()->user()->isAdmin())
-                <a href="{{ route('topics.create') }}" class="button">Create topic</a>
-            @endif
+            <span class="badge">{{ $topics->count() }} shown</span>
         </div>
 
         <div class="table-wrap">

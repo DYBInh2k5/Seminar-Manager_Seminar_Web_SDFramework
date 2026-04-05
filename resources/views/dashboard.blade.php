@@ -5,6 +5,24 @@
 ])
 
 @section('content')
+    <section class="page-intro">
+        <div>
+            <div class="kicker-nav">
+                <span>Archives</span>
+                <span>/</span>
+                <span class="active">Overview</span>
+            </div>
+            <h2>Curated insights for the academic term</h2>
+            <p class="muted">A stitched academic dashboard view for topics, registrations, reporting, and seminar performance.</p>
+        </div>
+        @if (auth()->user()->isLecturer() || auth()->user()->isAdmin())
+            <a href="{{ route('topics.create') }}" class="button">
+                <span class="material-symbols-outlined">add</span>
+                <span>New seminar</span>
+            </a>
+        @endif
+    </section>
+
     <section class="stat-grid">
         <article class="stat-card"><span>Topics</span><strong>{{ $stats['topics'] }}</strong></article>
         <article class="stat-card"><span>Students</span><strong>{{ $stats['students'] }}</strong></article>

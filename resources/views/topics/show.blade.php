@@ -5,6 +5,19 @@
 ])
 
 @section('content')
+    <section class="page-intro">
+        <div>
+            <div class="kicker-nav">
+                <a href="{{ route('topics.index') }}">Topics</a>
+                <span>/</span>
+                <span class="active">{{ $topic->title }}</span>
+            </div>
+            <h2>{{ $topic->title }}</h2>
+            <p class="muted">Topic details, seminar administration, registrations, uploaded reports, presentation schedule, and final scoring in one screen.</p>
+        </div>
+        <span class="badge {{ $topic->status }}">{{ $topic->status }}</span>
+    </section>
+
     <div class="grid two">
         <section class="card">
             <div class="section-head">
@@ -12,7 +25,7 @@
                     <span class="eyebrow">Topic Overview</span>
                     <h2>Topic information</h2>
                 </div>
-                <span class="badge {{ $topic->status }}">{{ $topic->status }}</span>
+                <span class="badge">{{ $topic->registrations->count() }} registrations</span>
             </div>
 
             <p>{{ $topic->description }}</p>
