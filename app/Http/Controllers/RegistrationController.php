@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Registration;
 use App\Models\Topic;
+use App\Support\ActivityLogger;
 use App\Support\SeminarNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,6 +31,18 @@ class RegistrationController extends Controller
 
         if ($created) {
             SeminarNotifier::registrationSubmitted($registration);
+            ActivityLogger::log(
+                $request->user(),
+                'registration.submitted',
+                "{$request->user()->name} registered for {$topic->title}.",
+                $registration,
+                [
+                    'topic_id' => $topic->id,
+                    'student_id' => $request->user()->id,
+                    'lecturer_id' => $topic->lecturer_id,
+                    'registration_status' => $registration->status,
+                ]
+            );
         }
 
         return back()->with('status', $created ? 'Your topic registration has been submitted.' : 'You have already registered for this topic.');
@@ -47,6 +60,18 @@ class RegistrationController extends Controller
         $registration->update($data);
         $registration->load(['topic', 'student']);
         SeminarNotifier::registrationStatusUpdated($registration);
+        ActivityLogger::log(
+            $user,
+            'registration.status_updated',
+            "{$user->name} set {$registration->student->name}'s registration for {$registration->topic->title} to {$registration->status}.",
+            $registration,
+            [
+                'topic_id' => $registration->topic_id,
+                'student_id' => $registration->student_id,
+                'lecturer_id' => $registration->topic->lecturer_id,
+                'registration_status' => $registration->status,
+            ]
+        );
 
         return back()->with('status', 'Registration status updated successfully.');
     }

@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\AiChatConversation;
+use App\Support\ActivityLogger;
 use App\Support\SeminarAiChat;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -44,6 +47,7 @@ class AiChatController extends Controller
                             'text' => $message->content,
                         ])->values(),
                 ] : null,
+                'quickActions' => $this->quickActions($user),
             ],
         ]);
     }
@@ -51,28 +55,50 @@ class AiChatController extends Controller
     public function store(Request $request, SeminarAiChat $chat): JsonResponse
     {
         $validated = $request->validate([
-            'message' => ['required', 'string', 'max:4000'],
+            'message' => ['nullable', 'string', 'max:4000'],
+            'action' => ['nullable', Rule::in(array_keys($this->quickActionMap($request->user())))],
             'conversation_id' => ['nullable', 'integer'],
         ]);
 
+        $message = trim((string) ($validated['message'] ?? ''));
+        $action = $validated['action'] ?? null;
+
+        if ($message === '' && ! $action) {
+            return response()->json([
+                'message' => 'Please enter a message or choose a quick action.',
+            ], 422);
+        }
+
+        $rateLimitKey = 'ai-chat:' . $request->user()->id;
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 12)) {
+            return response()->json([
+                'message' => 'AI chat is receiving requests too quickly. Please wait a moment and try again.',
+            ], 429);
+        }
+
         try {
             $user = $request->user();
+            $effectiveMessage = $this->resolveMessage($user, $message, $action);
             $conversation = $user->aiChatConversations()->find($validated['conversation_id'] ?? 0);
 
             if (! $conversation) {
                 $conversation = $user->aiChatConversations()->create([
-                    'title' => Str::limit($validated['message'], 60, '...'),
+                    'title' => Str::limit($effectiveMessage, 60, '...'),
                 ]);
             }
 
             $conversation->messages()->create([
                 'role' => 'user',
-                'content' => $validated['message'],
+                'content' => $effectiveMessage,
+                'meta' => [
+                    'action' => $action,
+                ],
             ]);
 
             $result = $chat->reply(
                 $user,
-                $validated['message'],
+                $effectiveMessage,
                 $conversation->last_response_id,
             );
 
@@ -86,9 +112,22 @@ class AiChatController extends Controller
             ]);
 
             $conversation->forceFill([
-                'title' => $conversation->title ?: Str::limit($validated['message'], 60, '...'),
+                'title' => $conversation->title ?: Str::limit($effectiveMessage, 60, '...'),
                 'last_response_id' => $result['response_id'] ?? $conversation->last_response_id,
             ])->save();
+
+            ActivityLogger::log(
+                $user,
+                'ai_chat.message_sent',
+                "{$user->name} used the AI assistant" . ($action ? " with action {$action}" : '') . '.',
+                $conversation,
+                [
+                    'action_name' => $action,
+                    'user_role' => $user->role,
+                ]
+            );
+
+            RateLimiter::hit($rateLimitKey, 60);
 
             return response()->json([
                 'reply' => $result['reply'],
@@ -103,6 +142,7 @@ class AiChatController extends Controller
                     'role' => 'assistant',
                     'text' => $assistantMessage->content,
                 ],
+                'effective_message' => $effectiveMessage,
             ]);
         } catch (RuntimeException $exception) {
             return response()->json([
@@ -122,6 +162,16 @@ class AiChatController extends Controller
         $conversation = $request->user()->aiChatConversations()->create([
             'title' => 'New conversation',
         ]);
+
+        ActivityLogger::log(
+            $request->user(),
+            'ai_chat.conversation_created',
+            "{$request->user()->name} started a new AI chat conversation.",
+            $conversation,
+            [
+                'user_role' => $request->user()->role,
+            ]
+        );
 
         return response()->json([
             'id' => $conversation->id,
@@ -146,5 +196,86 @@ class AiChatController extends Controller
                     'text' => $message->content,
                 ])->values(),
         ]);
+    }
+
+    protected function quickActions($user): array
+    {
+        return collect($this->quickActionMap($user))
+            ->map(fn (array $action, string $key) => [
+                'id' => $key,
+                'label' => $action['label'],
+                'description' => $action['description'],
+            ])
+            ->values()
+            ->all();
+    }
+
+    protected function quickActionMap($user): array
+    {
+        $common = [
+            'project_overview' => [
+                'label' => 'Project overview',
+                'description' => 'Summarize the structure, workflow, and core features of Seminar Manager.',
+                'prompt' => 'Give me a concise overview of the Seminar Manager project, including its main modules and workflow.',
+            ],
+            'database_summary' => [
+                'label' => 'Database summary',
+                'description' => 'Explain the important database tables and how they relate to one another.',
+                'prompt' => 'Explain the database design of this Laravel seminar project, focusing on the core tables and relationships.',
+            ],
+        ];
+
+        $roleSpecific = match ($user->role) {
+            'student' => [
+                'my_registrations' => [
+                    'label' => 'My registrations',
+                    'description' => 'Summarize my registrations, report status, presentation schedule, and score.',
+                    'prompt' => 'Summarize my current seminar registrations, report review status, presentation schedule, and scores.',
+                ],
+                'resubmission_help' => [
+                    'label' => 'Resubmission help',
+                    'description' => 'Explain how report review notes and resubmission work in this system.',
+                    'prompt' => 'Explain how report review notes, change requests, and resubmission work for students in this seminar system.',
+                ],
+            ],
+            'lecturer' => [
+                'pending_reviews' => [
+                    'label' => 'Pending reviews',
+                    'description' => 'Explain what I should review next as a lecturer.',
+                    'prompt' => 'Based on my lecturer role, summarize my pending registrations, report review responsibilities, and scheduling tasks.',
+                ],
+                'feedback_tips' => [
+                    'label' => 'Feedback tips',
+                    'description' => 'Suggest a good review workflow for report feedback and scoring.',
+                    'prompt' => 'Suggest a practical lecturer workflow for reviewing reports, requesting changes, accepting submissions, scheduling presentations, and publishing scores.',
+                ],
+            ],
+            'admin' => [
+                'system_health' => [
+                    'label' => 'System health',
+                    'description' => 'Summarize the current workflow health of the seminar platform.',
+                    'prompt' => 'Summarize the current system health of the seminar platform, including registrations, report reviews, upcoming presentations, and user roles.',
+                ],
+                'demo_script' => [
+                    'label' => 'Demo script',
+                    'description' => 'Create a quick walkthrough for presenting this project in class.',
+                    'prompt' => 'Create a short live-demo walkthrough for presenting this Seminar Manager project to a lecturer or class.',
+                ],
+            ],
+            default => [],
+        };
+
+        return $common + $roleSpecific;
+    }
+
+    protected function resolveMessage($user, string $message, ?string $action): string
+    {
+        if (! $action) {
+            return $message;
+        }
+
+        $prompt = $this->quickActionMap($user)[$action]['prompt'] ?? '';
+
+        return trim($prompt . ($message !== '' ? "\n\nExtra user request: {$message}" : ''));
     }
 }

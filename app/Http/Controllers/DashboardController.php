@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Registration;
 use App\Models\Topic;
 use App\Models\User;
@@ -82,6 +83,25 @@ class DashboardController extends Controller
             ->latest()
             ->get();
 
+        $recentActivities = ActivityLog::query()
+            ->with('user')
+            ->when(! $user->isAdmin(), function ($query) use ($user) {
+                $query->where(function ($inner) use ($user) {
+                    $inner->where('user_id', $user->id);
+
+                    if ($user->isStudent()) {
+                        $inner->orWhere('metadata->student_id', $user->id);
+                    }
+
+                    if ($user->isLecturer()) {
+                        $inner->orWhere('metadata->lecturer_id', $user->id);
+                    }
+                });
+            })
+            ->latest()
+            ->take(8)
+            ->get();
+
         return view('dashboard', compact(
             'stats',
             'statusBreakdown',
@@ -90,7 +110,8 @@ class DashboardController extends Controller
             'dashboardAnalytics',
             'myTopics',
             'myRegistrations',
-            'pendingForReview'
+            'pendingForReview',
+            'recentActivities'
         ));
     }
 }

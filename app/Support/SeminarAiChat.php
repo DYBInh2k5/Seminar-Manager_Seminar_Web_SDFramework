@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Presentation;
 use App\Models\Registration;
+use App\Models\Submission;
 use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Http\Client\RequestException;
@@ -70,6 +71,7 @@ class SeminarAiChat
             'You are SeminarBoost AI, the built-in assistant for the Seminar Manager Laravel application.',
             'Your job is to help users understand seminar topics, registration flow, schedules, scoring, and how to use this system.',
             'Keep answers concise, practical, and easy for university users to follow.',
+            'Prefer clean Markdown with short headings or bullet points when it improves clarity.',
             'If the user asks about project implementation, answer in terms of Laravel, Blade, React analytics, database tables, and role-based workflows.',
             'Do not invent private records or claim you changed data. You are a chat assistant, not an autonomous workflow executor.',
             "Current user role: {$user->role}.",
@@ -84,7 +86,7 @@ class SeminarAiChat
     protected function studentContext(User $user): string
     {
         $registrations = Registration::query()
-            ->with(['topic', 'presentation', 'score'])
+            ->with(['topic', 'presentation', 'score', 'submission'])
             ->where('student_id', $user->id)
             ->latest()
             ->take(3)
@@ -98,7 +100,11 @@ class SeminarAiChat
                     ? number_format((float) $registration->score->score, 2) . '/10'
                     : 'not scored';
 
-                return "{$registration->topic->title} ({$registration->status}, presentation: {$presentation}, score: {$score})";
+                $submission = $registration->submission
+                    ? "{$registration->submission->review_status}, revision {$registration->submission->revision_number}"
+                    : 'no report uploaded';
+
+                return "{$registration->topic->title} ({$registration->status}, report: {$submission}, presentation: {$presentation}, score: {$score})";
             })
             ->implode('; ');
 
@@ -119,9 +125,15 @@ class SeminarAiChat
             ->whereHas('topic', fn ($query) => $query->where('lecturer_id', $user->id))
             ->count();
 
+        $submissionReviews = Submission::query()
+            ->whereHas('registration.topic', fn ($query) => $query->where('lecturer_id', $user->id))
+            ->whereIn('review_status', ['submitted', 'changes_requested'])
+            ->count();
+
         return 'Lecturer-specific context: '
             . 'Topics supervised: ' . ($topicTitles !== '' ? $topicTitles : 'none yet') . '. '
-            . "Pending reviews for this lecturer: {$pendingReviews}.";
+            . "Pending registration approvals for this lecturer: {$pendingReviews}. "
+            . "Submission reviews needing lecturer attention: {$submissionReviews}.";
     }
 
     protected function adminContext(): string
@@ -129,8 +141,10 @@ class SeminarAiChat
         $upcomingPresentations = Presentation::query()
             ->where('scheduled_at', '>=', now())
             ->count();
+        $acceptedReports = Submission::query()->where('review_status', 'accepted')->count();
+        $changesRequested = Submission::query()->where('review_status', 'changes_requested')->count();
 
-        return "Admin-specific context: upcoming presentations across the system: {$upcomingPresentations}.";
+        return "Admin-specific context: upcoming presentations across the system: {$upcomingPresentations}. Accepted reports: {$acceptedReports}. Reports with requested changes: {$changesRequested}.";
     }
 
     protected function extractReplyText(array $data): string

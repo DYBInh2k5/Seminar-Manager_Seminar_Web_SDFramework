@@ -47,6 +47,15 @@ class SeminarNotifier
         );
     }
 
+    public static function reportReviewed(Submission $submission): void
+    {
+        $registration = $submission->registration;
+        Mail::raw(
+            "Your seminar report has been reviewed.\n\nTopic: {$registration->topic->title}\nReview status: {$submission->review_status}\nReview note: " . ($submission->review_note ?? 'No review note'),
+            fn ($message) => $message->to($registration->student->email)->subject('Seminar report review updated')
+        );
+    }
+
     public static function presentationScheduled(Presentation $presentation): void
     {
         $registration = $presentation->registration;

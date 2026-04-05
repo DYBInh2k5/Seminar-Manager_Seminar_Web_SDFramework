@@ -20,12 +20,13 @@ Detailed project documentation is available in these files:
 - Topic search and filtering
 - Lecturer assignment for topics
 - Student topic registration
-- Report upload, download, replacement, and deletion
+- Report upload, review, resubmission, download, replacement, and deletion
 - Registration approval and rejection workflow
 - Presentation scheduling
 - Scoring and feedback
+- Activity logs for key seminar actions
 - Dashboard analytics
-- AI chat assistant for seminar and project guidance
+- AI chat assistant for seminar and project guidance with quick actions, markdown replies, and rate limiting
 - Admin user management
 - Printable topic summary page for browser PDF export
 - Notification hooks using Laravel mail
@@ -64,8 +65,10 @@ The main seminar flow in the system is:
 2. Student registers for the topic.
 3. Lecturer approves or rejects the registration.
 4. Student uploads the seminar report.
-5. Lecturer schedules the presentation.
-6. Lecturer publishes the score and comment.
+5. Lecturer reviews the report, accepts it, or requests changes.
+6. Student resubmits if needed.
+7. Lecturer schedules the presentation.
+8. Lecturer publishes the score and comment.
 
 The central database table in this workflow is `registrations`, because it connects the student, topic, submission, presentation, and score records.
 
@@ -81,6 +84,7 @@ The central database table in this workflow is `registrations`, because it conne
 
 - create and manage topics
 - review registrations
+- review report submissions and request changes
 - schedule presentations
 - assign scores and comments
 
@@ -88,8 +92,9 @@ The central database table in this workflow is `registrations`, because it conne
 
 - browse topics
 - register for topics
-- upload reports
+- upload reports and resubmit after feedback
 - review schedule and grading results
+- read lecturer review notes
 
 ## Demo Accounts
 
@@ -167,7 +172,8 @@ Current coverage includes:
 - login page access
 - dashboard access
 - AI chat page and endpoint
-- report upload/delete flow
+- report upload/review/resubmission flow
+- AI quick actions and rate limiting
 - topic creation and filtering
 - printable summary access
 - admin user management access

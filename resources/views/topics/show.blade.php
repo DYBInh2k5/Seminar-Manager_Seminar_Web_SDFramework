@@ -69,6 +69,22 @@
                                 @if ($registration->submission->note)
                                     <div class="muted small">Note: {{ $registration->submission->note }}</div>
                                 @endif
+                                <div class="muted small">
+                                    Review status: {{ str_replace('_', ' ', $registration->submission->review_status) }}
+                                    · Revision {{ $registration->submission->revision_number }}
+                                </div>
+                                @if ($registration->submission->review_note)
+                                    <div class="note-box">
+                                        <div class="label">Review note</div>
+                                        <p class="muted small">{{ $registration->submission->review_note }}</p>
+                                        <div class="muted small">
+                                            Reviewed by {{ $registration->submission->reviewer?->name ?? 'Lecturer' }}
+                                            @if ($registration->submission->reviewed_at)
+                                                · {{ $registration->submission->reviewed_at->format('d/m/Y H:i') }}
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
                             @endif
                             @if ($registration->presentation)
                                 <div class="muted small">Presentation: {{ $registration->presentation->scheduled_at->format('d/m/Y H:i') }} · {{ $registration->presentation->room }}</div>
@@ -95,6 +111,25 @@
                                     </select>
                                     <button type="submit" class="button small">Save</button>
                                 </form>
+
+                                @if ($registration->submission)
+                                    <form action="{{ route('submissions.review', $registration->submission) }}" method="POST" class="form compact-form">
+                                        @csrf
+                                        @method('PATCH')
+                                        <label>
+                                            <span>Review status</span>
+                                            <select name="review_status" required>
+                                                <option value="changes_requested" @selected(old('review_status', $registration->submission->review_status) === 'changes_requested')>Changes requested</option>
+                                                <option value="accepted" @selected(old('review_status', $registration->submission->review_status) === 'accepted')>Accepted</option>
+                                            </select>
+                                        </label>
+                                        <label>
+                                            <span>Review note</span>
+                                            <textarea name="review_note" rows="3" required>{{ old('review_note', $registration->submission->review_note) }}</textarea>
+                                        </label>
+                                        <button type="submit" class="button secondary small">Save review</button>
+                                    </form>
+                                @endif
 
                                 @if ($registration->status === 'approved')
                                     <div class="inline-actions">
@@ -128,4 +163,27 @@
             </div>
         </section>
     </div>
+
+    <section class="card spaced-card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Timeline</span>
+                <h2>Topic activity</h2>
+            </div>
+        </div>
+
+        <div class="stack-list">
+            @forelse ($activities as $activity)
+                <article class="list-item wide activity-item">
+                    <div>
+                        <strong>{{ $activity->description }}</strong>
+                        <div class="muted small">{{ $activity->user?->name ?? 'System' }} · {{ $activity->created_at->diffForHumans() }}</div>
+                    </div>
+                    <span class="badge">{{ str_replace('.', ' ', $activity->action) }}</span>
+                </article>
+            @empty
+                <p class="muted">No activity recorded for this topic yet.</p>
+            @endforelse
+        </div>
+    </section>
 @endsection

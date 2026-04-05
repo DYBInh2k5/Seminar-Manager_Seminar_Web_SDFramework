@@ -1,10 +1,136 @@
 import React, { useMemo, useState } from 'react';
 
-const STARTER_PROMPTS = [
-    'Explain the seminar registration flow.',
-    'How does scoring work in this project?',
-    'Summarize the database design for me.',
-];
+function escapeHtml(value) {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function renderInlineMarkdown(text) {
+    const escaped = escapeHtml(text);
+
+    return escaped
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+}
+
+function renderMarkdownBlocks(text) {
+    const lines = text.split(/\r?\n/);
+    const blocks = [];
+    let paragraph = [];
+    let listItems = [];
+    let listType = null;
+
+    const flushParagraph = () => {
+        if (!paragraph.length) {
+            return;
+        }
+
+        blocks.push({
+            type: 'paragraph',
+            content: paragraph.join(' '),
+        });
+        paragraph = [];
+    };
+
+    const flushList = () => {
+        if (!listItems.length) {
+            return;
+        }
+
+        blocks.push({
+            type: listType,
+            items: [...listItems],
+        });
+        listItems = [];
+        listType = null;
+    };
+
+    lines.forEach((line) => {
+        const trimmed = line.trim();
+
+        if (!trimmed) {
+            flushParagraph();
+            flushList();
+            return;
+        }
+
+        const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
+        if (headingMatch) {
+            flushParagraph();
+            flushList();
+            blocks.push({
+                type: 'heading',
+                level: headingMatch[1].length,
+                content: headingMatch[2],
+            });
+            return;
+        }
+
+        const unorderedMatch = trimmed.match(/^[-*]\s+(.+)$/);
+        if (unorderedMatch) {
+            flushParagraph();
+            if (listType && listType !== 'ul') {
+                flushList();
+            }
+            listType = 'ul';
+            listItems.push(unorderedMatch[1]);
+            return;
+        }
+
+        const orderedMatch = trimmed.match(/^\d+\.\s+(.+)$/);
+        if (orderedMatch) {
+            flushParagraph();
+            if (listType && listType !== 'ol') {
+                flushList();
+            }
+            listType = 'ol';
+            listItems.push(orderedMatch[1]);
+            return;
+        }
+
+        flushList();
+        paragraph.push(trimmed);
+    });
+
+    flushParagraph();
+    flushList();
+
+    return blocks;
+}
+
+function MarkdownMessage({ text }) {
+    const blocks = useMemo(() => renderMarkdownBlocks(text), [text]);
+
+    return (
+        <div className="chat-bubble-body markdown-body">
+            {blocks.map((block, index) => {
+                const key = `${block.type}-${index}`;
+
+                if (block.type === 'heading') {
+                    const Tag = `h${Math.min(block.level + 2, 6)}`;
+                    return <Tag key={key} dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(block.content) }} />;
+                }
+
+                if (block.type === 'ul' || block.type === 'ol') {
+                    const Tag = block.type;
+                    return (
+                        <Tag key={key}>
+                            {block.items.map((item, itemIndex) => (
+                                <li key={`${key}-${itemIndex}`} dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(item) }} />
+                            ))}
+                        </Tag>
+                    );
+                }
+
+                return <p key={key} dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(block.content) }} />;
+            })}
+        </div>
+    );
+}
 
 function MessageBubble({ message }) {
     return (
@@ -12,11 +138,7 @@ function MessageBubble({ message }) {
             <div className="chat-bubble-meta">
                 <strong>{message.role === 'assistant' ? 'SeminarBoost AI' : 'You'}</strong>
             </div>
-            <div className="chat-bubble-body">
-                {message.text.split('\n').map((line, index) => (
-                    <p key={`${message.id}-${index}`}>{line}</p>
-                ))}
-            </div>
+            <MarkdownMessage text={message.text} />
         </article>
     );
 }
@@ -25,12 +147,18 @@ function buildWelcomeMessage(user) {
     return {
         id: 'welcome',
         role: 'assistant',
-        text: `Hello ${user.name}. I can help with seminar workflow, project structure, topics, scoring, and how this Laravel app works.`,
+        text: `# Welcome\nI can help **${user.name}** with seminar workflow, project structure, report reviews, scoring, and how this Laravel app works.`,
     };
 }
 
 export default function AiChat({ endpoint, conversationEndpoint, showEndpointTemplate, bootstrap }) {
-    const { user, conversations: initialConversations = [], activeConversation = null } = bootstrap;
+    const {
+        user,
+        conversations: initialConversations = [],
+        activeConversation = null,
+        quickActions = [],
+    } = bootstrap;
+
     const [messages, setMessages] = useState(
         activeConversation?.messages?.length ? activeConversation.messages : [buildWelcomeMessage(user)],
     );
@@ -43,49 +171,58 @@ export default function AiChat({ endpoint, conversationEndpoint, showEndpointTem
 
     const canSend = useMemo(() => draft.trim().length > 0 && !isSending, [draft, isSending]);
 
-    const sendMessage = async (text) => {
-        const cleaned = text.trim();
+    const appendUserMessage = (text) => {
+        setMessages((current) => [
+            ...current,
+            {
+                id: `user-${Date.now()}`,
+                role: 'user',
+                text,
+            },
+        ]);
+    };
 
-        if (! cleaned) {
+    const updateConversationList = (conversation) => {
+        if (!conversation) {
             return;
         }
 
-        const userMessage = {
-            id: `user-${Date.now()}`,
-            role: 'user',
-            text: cleaned,
-        };
+        setConversations((current) => {
+            const next = current.filter((item) => item.id !== conversation.id);
 
-        setMessages((current) => [...current, userMessage]);
+            return [
+                {
+                    id: conversation.id,
+                    title: conversation.title,
+                    updatedAt: new Date().toISOString(),
+                },
+                ...next,
+            ];
+        });
+    };
+
+    const sendPayload = async ({ message = '', action = null, previewText = '' }) => {
+        if (!message.trim() && !action) {
+            return;
+        }
+
+        if (previewText) {
+            appendUserMessage(previewText);
+        }
+
         setDraft('');
         setError('');
         setIsSending(true);
 
         try {
             const response = await window.axios.post(endpoint, {
-                message: cleaned,
+                message,
+                action,
                 conversation_id: activeConversationId,
             });
 
             setActiveConversationId(response.data.conversation?.id ?? activeConversationId);
-            setConversations((current) => {
-                const conversation = response.data.conversation;
-
-                if (! conversation) {
-                    return current;
-                }
-
-                const next = current.filter((item) => item.id !== conversation.id);
-
-                return [
-                    {
-                        id: conversation.id,
-                        title: conversation.title,
-                        updatedAt: new Date().toISOString(),
-                    },
-                    ...next,
-                ];
-            });
+            updateConversationList(response.data.conversation);
             setMessages((current) => [
                 ...current,
                 {
@@ -95,9 +232,8 @@ export default function AiChat({ endpoint, conversationEndpoint, showEndpointTem
                 },
             ]);
         } catch (requestError) {
-            const message = requestError.response?.data?.message ?? 'Unable to contact the AI assistant right now.';
-
-            setError(message);
+            const messageText = requestError.response?.data?.message ?? 'Unable to contact the AI assistant right now.';
+            setError(messageText);
         } finally {
             setIsSending(false);
         }
@@ -105,7 +241,13 @@ export default function AiChat({ endpoint, conversationEndpoint, showEndpointTem
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        await sendMessage(draft);
+        const cleaned = draft.trim();
+
+        if (!cleaned) {
+            return;
+        }
+
+        await sendPayload({ message: cleaned, previewText: cleaned });
     };
 
     const createConversation = async () => {
@@ -126,15 +268,15 @@ export default function AiChat({ endpoint, conversationEndpoint, showEndpointTem
             ]);
             setMessages([buildWelcomeMessage(user)]);
         } catch (requestError) {
-            const message = requestError.response?.data?.message ?? 'Unable to create a new conversation.';
-            setError(message);
+            const messageText = requestError.response?.data?.message ?? 'Unable to create a new conversation.';
+            setError(messageText);
         } finally {
             setIsLoadingConversation(false);
         }
     };
 
     const loadConversation = async (conversationId) => {
-        if (! conversationId || conversationId === activeConversationId) {
+        if (!conversationId || conversationId === activeConversationId) {
             return;
         }
 
@@ -148,16 +290,11 @@ export default function AiChat({ endpoint, conversationEndpoint, showEndpointTem
             setActiveConversationId(response.data.id);
             setMessages(response.data.messages?.length ? response.data.messages : [buildWelcomeMessage(user)]);
         } catch (requestError) {
-            const message = requestError.response?.data?.message ?? 'Unable to load that conversation.';
-            setError(message);
+            const messageText = requestError.response?.data?.message ?? 'Unable to load that conversation.';
+            setError(messageText);
         } finally {
             setIsLoadingConversation(false);
         }
-    };
-
-    const resetConversation = async () => {
-        setDraft('');
-        await createConversation();
     };
 
     return (
@@ -215,7 +352,7 @@ export default function AiChat({ endpoint, conversationEndpoint, showEndpointTem
                         <textarea
                             name="message"
                             rows="4"
-                            placeholder="Ask about the registration flow, scoring, database design, or how this Laravel project works..."
+                            placeholder="Ask about the registration flow, report review, scoring, database design, or how this Laravel project works..."
                             value={draft}
                             onChange={(event) => setDraft(event.target.value)}
                         />
@@ -225,7 +362,7 @@ export default function AiChat({ endpoint, conversationEndpoint, showEndpointTem
                         <button type="submit" className="button" disabled={!canSend}>
                             {isSending ? 'Thinking...' : 'Send to AI'}
                         </button>
-                        <button type="button" className="button secondary" onClick={resetConversation} disabled={isSending || isLoadingConversation}>
+                        <button type="button" className="button secondary" onClick={createConversation} disabled={isSending || isLoadingConversation}>
                             New conversation
                         </button>
                     </div>
@@ -235,21 +372,22 @@ export default function AiChat({ endpoint, conversationEndpoint, showEndpointTem
             <section className="card">
                 <div className="section-head">
                     <div>
-                        <span className="eyebrow">Suggestions</span>
-                        <h2>Good starter prompts</h2>
+                        <span className="eyebrow">Quick actions</span>
+                        <h2>Role-aware prompts</h2>
                     </div>
                 </div>
 
                 <div className="stack-list">
-                    {STARTER_PROMPTS.map((prompt) => (
+                    {quickActions.map((action) => (
                         <button
-                            key={prompt}
+                            key={action.id}
                             type="button"
                             className="prompt-card"
-                            onClick={() => sendMessage(prompt)}
+                            onClick={() => sendPayload({ action: action.id, previewText: action.label })}
                             disabled={isSending}
                         >
-                            {prompt}
+                            <strong>{action.label}</strong>
+                            <div className="muted small">{action.description}</div>
                         </button>
                     ))}
                 </div>
@@ -257,7 +395,7 @@ export default function AiChat({ endpoint, conversationEndpoint, showEndpointTem
                 <div className="card compact chat-note">
                     <div className="label">What this assistant is for</div>
                     <p className="muted small">
-                        It can explain project workflow, roles, routes, database structure, seminar usage, and general guidance for this system.
+                        It can explain project workflow, roles, routes, database structure, report review flow, and practical guidance for this system.
                     </p>
                 </div>
             </section>

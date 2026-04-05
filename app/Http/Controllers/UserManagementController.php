@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -42,7 +43,17 @@ class UserManagementController extends Controller
         $data = $this->validatedData($request, null, true);
         $data['password'] = Hash::make($data['password']);
 
-        User::create($data);
+        $createdUser = User::create($data);
+        ActivityLogger::log(
+            $request->user(),
+            'user.created',
+            "{$request->user()->name} created user {$createdUser->name}.",
+            $createdUser,
+            [
+                'managed_user_id' => $createdUser->id,
+                'managed_user_role' => $createdUser->role,
+            ]
+        );
 
         return redirect()->route('users.index')->with('status', 'User created successfully.');
     }
@@ -68,6 +79,16 @@ class UserManagementController extends Controller
         }
 
         $user->update($data);
+        ActivityLogger::log(
+            $request->user(),
+            'user.updated',
+            "{$request->user()->name} updated user {$user->name}.",
+            $user,
+            [
+                'managed_user_id' => $user->id,
+                'managed_user_role' => $user->role,
+            ]
+        );
 
         return redirect()->route('users.index')->with('status', 'User updated successfully.');
     }
@@ -76,7 +97,22 @@ class UserManagementController extends Controller
     {
         abort_if($request->user()->is($user), 422, 'You cannot delete the currently signed-in account.');
 
+        $deletedUser = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'role' => $user->role,
+        ];
         $user->delete();
+        ActivityLogger::log(
+            $request->user(),
+            'user.deleted',
+            "{$request->user()->name} deleted user {$deletedUser['name']}.",
+            null,
+            [
+                'managed_user_id' => $deletedUser['id'],
+                'managed_user_role' => $deletedUser['role'],
+            ]
+        );
 
         return redirect()->route('users.index')->with('status', 'User deleted successfully.');
     }

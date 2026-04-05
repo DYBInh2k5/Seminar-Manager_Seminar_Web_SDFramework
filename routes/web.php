@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AiChatController;
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\PresentationController;
@@ -21,6 +22,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/activity', [ActivityLogController::class, 'index'])->name('activity.index');
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
     Route::get('/ai-chat', [AiChatController::class, 'index'])->name('ai-chat.index');
     Route::post('/ai-chat', [AiChatController::class, 'store'])->name('ai-chat.store');
@@ -54,6 +56,9 @@ Route::middleware('auth')->group(function () {
         ->name('submissions.destroy');
     Route::get('/submissions/{submission}/download', [SubmissionController::class, 'download'])
         ->name('submissions.download');
+    Route::patch('/submissions/{submission}/review', [SubmissionController::class, 'review'])
+        ->middleware('role:lecturer,admin')
+        ->name('submissions.review');
 
     Route::get('/registrations/{registration}/presentation/create', [PresentationController::class, 'create'])
         ->middleware('role:lecturer,admin')

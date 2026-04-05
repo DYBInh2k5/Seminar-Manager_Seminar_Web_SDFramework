@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Presentation;
 use App\Models\Registration;
+use App\Support\ActivityLogger;
 use App\Support\SeminarNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,6 +31,18 @@ class PresentationController extends Controller
         $presentation = $registration->presentation()->updateOrCreate([], $data);
         $presentation->load('registration.topic', 'registration.student');
         SeminarNotifier::presentationScheduled($presentation);
+        ActivityLogger::log(
+            $request->user(),
+            'presentation.scheduled',
+            "{$request->user()->name} scheduled {$registration->student->name}'s presentation for {$registration->topic->title}.",
+            $presentation,
+            [
+                'topic_id' => $registration->topic_id,
+                'student_id' => $registration->student_id,
+                'lecturer_id' => $registration->topic->lecturer_id,
+                'registration_id' => $registration->id,
+            ]
+        );
 
         return redirect()->route('topics.show', $registration->topic)->with('status', 'Presentation schedule updated successfully.');
     }
@@ -59,6 +72,18 @@ class PresentationController extends Controller
         $presentation->update($data);
         $presentation->load('registration.topic', 'registration.student');
         SeminarNotifier::presentationScheduled($presentation);
+        ActivityLogger::log(
+            $request->user(),
+            'presentation.updated',
+            "{$request->user()->name} updated the presentation schedule for {$presentation->registration->student->name}.",
+            $presentation,
+            [
+                'topic_id' => $presentation->registration->topic_id,
+                'student_id' => $presentation->registration->student_id,
+                'lecturer_id' => $presentation->registration->topic->lecturer_id,
+                'registration_id' => $presentation->registration->id,
+            ]
+        );
 
         return redirect()->route('topics.show', $presentation->registration->topic)->with('status', 'Presentation schedule updated successfully.');
     }

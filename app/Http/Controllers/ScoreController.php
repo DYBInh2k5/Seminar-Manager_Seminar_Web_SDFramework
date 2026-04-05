@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Registration;
 use App\Models\Score;
+use App\Support\ActivityLogger;
 use App\Support\SeminarNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,6 +23,19 @@ class ScoreController extends Controller
         $score = $registration->score()->updateOrCreate([], $data);
         $score->load('registration.topic', 'registration.student');
         SeminarNotifier::scorePublished($score);
+        ActivityLogger::log(
+            $request->user(),
+            'score.published',
+            "{$request->user()->name} published a score for {$registration->student->name} on {$registration->topic->title}.",
+            $score,
+            [
+                'topic_id' => $registration->topic_id,
+                'student_id' => $registration->student_id,
+                'lecturer_id' => $registration->topic->lecturer_id,
+                'registration_id' => $registration->id,
+                'score' => $score->score,
+            ]
+        );
 
         return redirect()->route('topics.show', $registration->topic)->with('status', 'Seminar score saved successfully.');
     }
@@ -38,6 +52,19 @@ class ScoreController extends Controller
         $score->update($data);
         $score->load('registration.topic', 'registration.student');
         SeminarNotifier::scorePublished($score);
+        ActivityLogger::log(
+            $request->user(),
+            'score.updated',
+            "{$request->user()->name} updated the score for {$score->registration->student->name} on {$score->registration->topic->title}.",
+            $score,
+            [
+                'topic_id' => $score->registration->topic_id,
+                'student_id' => $score->registration->student_id,
+                'lecturer_id' => $score->registration->topic->lecturer_id,
+                'registration_id' => $score->registration->id,
+                'score' => $score->score,
+            ]
+        );
 
         return redirect()->route('topics.show', $score->registration->topic)->with('status', 'Seminar score updated successfully.');
     }

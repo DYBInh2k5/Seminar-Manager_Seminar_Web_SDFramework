@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Topic;
 use App\Models\User;
+use App\Models\ActivityLog;
+use App\Support\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -59,7 +61,17 @@ class TopicController extends Controller
         $data = $this->validatedData($request);
         $data['lecturer_id'] = $this->resolveLecturerId($request, $data['lecturer_id'] ?? null);
 
-        Topic::create($data);
+        $topic = Topic::create($data);
+        ActivityLogger::log(
+            $request->user(),
+            'topic.created',
+            "{$request->user()->name} created the topic {$topic->title}.",
+            $topic,
+            [
+                'topic_id' => $topic->id,
+                'lecturer_id' => $topic->lecturer_id,
+            ]
+        );
 
         return redirect()->route('topics.index')->with('status', 'Topic created successfully.');
     }
@@ -71,10 +83,17 @@ class TopicController extends Controller
             'registrations.student',
             'registrations.presentation',
             'registrations.score',
-            'registrations.submission',
+            'registrations.submission.reviewer',
         ]);
 
-        return view('topics.show', compact('topic'));
+        $activities = ActivityLog::query()
+            ->with('user')
+            ->where('metadata->topic_id', $topic->id)
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view('topics.show', compact('topic', 'activities'));
     }
 
     public function edit(Request $request, Topic $topic): View
@@ -95,6 +114,16 @@ class TopicController extends Controller
         $data['lecturer_id'] = $this->resolveLecturerId($request, $data['lecturer_id'] ?? $topic->lecturer_id);
 
         $topic->update($data);
+        ActivityLogger::log(
+            $request->user(),
+            'topic.updated',
+            "{$request->user()->name} updated the topic {$topic->title}.",
+            $topic,
+            [
+                'topic_id' => $topic->id,
+                'lecturer_id' => $topic->lecturer_id,
+            ]
+        );
 
         return redirect()->route('topics.show', $topic)->with('status', 'Topic updated successfully.');
     }
@@ -103,7 +132,19 @@ class TopicController extends Controller
     {
         $this->authorizeTopicAccess($request->user(), $topic);
 
+        $title = $topic->title;
         $topic->delete();
+        ActivityLogger::log(
+            $request->user(),
+            'topic.deleted',
+            "{$request->user()->name} deleted the topic {$title}.",
+            null,
+            [
+                'topic_id' => $topic->id,
+                'lecturer_id' => $topic->lecturer_id,
+                'topic_title' => $title,
+            ]
+        );
 
         return redirect()->route('topics.index')->with('status', 'Topic deleted successfully.');
     }

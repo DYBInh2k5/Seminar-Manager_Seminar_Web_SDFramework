@@ -91,11 +91,18 @@ Key columns:
 - `mime_type`: file MIME type
 - `submitted_at`: report submission time
 - `note`: optional note from the student
+- `review_status`: lecturer review state such as `submitted`, `changes_requested`, or `accepted`
+- `review_note`: lecturer feedback for the student
+- `reviewed_by`: optional foreign key to `users.id`
+- `reviewed_at`: review timestamp
+- `revision_number`: current revision count for resubmission tracking
 - `created_at`, `updated_at`
 
 Meaning:
 
 - Each registration can have at most one current uploaded report
+- The same record can move through multiple revisions as the student resubmits
+- Lecturer review feedback is stored directly on the current submission record
 
 ### `presentations`
 
@@ -164,6 +171,25 @@ Meaning:
 - One conversation can have many messages
 - Together, these tables provide AI chat persistence
 
+### `activity_logs`
+
+Stores important audit-style events across the seminar workflow.
+
+Key columns:
+
+- `id`: primary key
+- `user_id`: optional foreign key to `users.id` for the actor
+- `action`: machine-friendly action name such as `submission.reviewed`
+- `description`: human-readable description of the event
+- `subject_type`, `subject_id`: optional polymorphic link to the related record
+- `metadata`: JSON payload with related ids such as `topic_id`, `student_id`, and `lecturer_id`
+- `created_at`, `updated_at`
+
+Meaning:
+
+- This table provides the activity feed shown in the dashboard and activity page
+- It also helps admins, lecturers, and students understand what happened recently in the system
+
 ## Supporting Laravel Tables
 
 These tables come from the standard Laravel setup and support framework features:
@@ -216,9 +242,12 @@ registrations
   |- hasOne submissions
   |- hasOne presentations
   |- hasOne scores
+  |- morphMany activity_logs
 
 submissions
   |- belongsTo registrations
+  |- belongsTo users          as reviewer
+  |- morphMany activity_logs
 
 presentations
   |- belongsTo registrations
@@ -232,6 +261,10 @@ ai_chat_conversations
 
 ai_chat_messages
   |- belongsTo ai_chat_conversations
+
+activity_logs
+  |- belongsTo users          as actor
+  |- morphTo subject
 ```
 
 ## ERD Diagram
@@ -285,6 +318,11 @@ erDiagram
         string mime_type
         datetime submitted_at
         text note
+        string review_status
+        text review_note
+        bigint reviewed_by FK
+        datetime reviewed_at
+        int revision_number
         datetime created_at
         datetime updated_at
     }
@@ -326,6 +364,18 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
+
+    ACTIVITY_LOGS {
+        bigint id PK
+        bigint user_id FK
+        string action
+        string description
+        string subject_type
+        bigint subject_id
+        json metadata
+        datetime created_at
+        datetime updated_at
+    }
 ```
 
 ## Core Data Flow
@@ -364,6 +414,11 @@ erDiagram
 
 - A row is created in `scores`
 - Final numeric score and comment are stored there
+
+### 7. Activity is recorded
+
+- Important actions insert rows into `activity_logs`
+- These rows capture who performed the action and which topic, student, or lecturer it affected
 
 ## Why `registrations` Is the Center Table
 
@@ -429,6 +484,7 @@ The database structure maps directly to these models:
 - `App\Models\AiChatConversation`
 - `App\Models\AiChatMessage`
 - `App\Models\User`
+- `App\Models\ActivityLog`
 - `App\Models\Topic`
 - `App\Models\Registration`
 - `App\Models\Submission`

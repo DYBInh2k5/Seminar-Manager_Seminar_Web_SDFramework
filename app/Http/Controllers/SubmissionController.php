@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Registration;
 use App\Models\Submission;
+use App\Support\ActivityLogger;
 use App\Support\SeminarNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class SubmissionController extends Controller
 
         $file = $data['report'];
         $path = $file->store('seminar-reports', 'local');
+        $nextRevision = ($registration->submission?->revision_number ?? 0) + 1;
 
         $submission = $registration->submission()->updateOrCreate([], [
             'original_name' => $file->getClientOriginalName(),
@@ -34,10 +36,25 @@ class SubmissionController extends Controller
             'mime_type' => $file->getClientMimeType() ?? $file->getMimeType() ?? 'application/octet-stream',
             'submitted_at' => now(),
             'note' => $data['note'] ?? null,
+            'review_status' => 'submitted',
+            'review_note' => null,
+            'reviewed_by' => null,
+            'reviewed_at' => null,
+            'revision_number' => $nextRevision,
         ]);
 
-        $submission->load('registration.topic.lecturer', 'registration.student');
+        $submission->load('registration.topic.lecturer', 'registration.student', 'reviewer');
         SeminarNotifier::reportUploaded($submission);
+        ActivityLogger::log(
+            $request->user(),
+            $nextRevision > 1 ? 'submission.resubmitted' : 'submission.uploaded',
+            "{$request->user()->name} uploaded report {$submission->original_name} for {$registration->topic->title}.",
+            $submission,
+            $this->activityContext($registration, [
+                'review_status' => $submission->review_status,
+                'revision_number' => $submission->revision_number,
+            ])
+        );
 
         return back()->with('status', 'Report uploaded successfully.');
     }
@@ -77,8 +94,53 @@ class SubmissionController extends Controller
         $submission->delete();
         $registration->load('topic.lecturer', 'student');
         SeminarNotifier::reportDeleted($registration);
+        ActivityLogger::log(
+            $user,
+            'submission.deleted',
+            "{$user->name} deleted the seminar report for {$registration->topic->title}.",
+            $registration,
+            $this->activityContext($registration)
+        );
 
         return back()->with('status', 'Report deleted successfully.');
+    }
+
+    public function review(Request $request, Submission $submission): RedirectResponse
+    {
+        $registration = $submission->registration()->with(['topic', 'student'])->firstOrFail();
+        $user = $request->user();
+
+        abort_unless(
+            $user->isAdmin() || ($user->isLecturer() && $registration->topic->lecturer_id === $user->id),
+            403
+        );
+
+        $data = $request->validate([
+            'review_status' => ['required', 'in:changes_requested,accepted'],
+            'review_note' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $submission->update([
+            'review_status' => $data['review_status'],
+            'review_note' => $data['review_note'],
+            'reviewed_by' => $user->id,
+            'reviewed_at' => now(),
+        ]);
+
+        $submission->load('registration.topic.lecturer', 'registration.student', 'reviewer');
+        SeminarNotifier::reportReviewed($submission);
+        ActivityLogger::log(
+            $user,
+            'submission.reviewed',
+            "{$user->name} marked the report for {$registration->student->name} as {$submission->review_status}.",
+            $submission,
+            $this->activityContext($registration, [
+                'review_status' => $submission->review_status,
+                'revision_number' => $submission->revision_number,
+            ])
+        );
+
+        return back()->with('status', 'Submission review saved successfully.');
     }
 
     protected function authorizeStudent(Request $request, Registration $registration): void
@@ -91,5 +153,15 @@ class SubmissionController extends Controller
             && in_array($registration->status, ['pending', 'approved'], true),
             403
         );
+    }
+
+    protected function activityContext(Registration $registration, array $extra = []): array
+    {
+        return array_merge([
+            'topic_id' => $registration->topic_id,
+            'student_id' => $registration->student_id,
+            'lecturer_id' => $registration->topic->lecturer_id,
+            'registration_id' => $registration->id,
+        ], $extra);
     }
 }

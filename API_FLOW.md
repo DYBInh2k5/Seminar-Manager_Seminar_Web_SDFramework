@@ -34,6 +34,7 @@ Affected tables:
 Accessible only after login:
 
 - dashboard
+- activity logs
 - ai chat
 - topics
 - registrations
@@ -67,6 +68,7 @@ Reads from:
 - `submissions`
 - `presentations`
 - `scores`
+- `activity_logs`
 
 Writes to:
 
@@ -95,7 +97,9 @@ Purpose:
 - render the AI chat page
 - create saved conversations
 - send user messages to the AI provider
+- trigger role-aware quick actions
 - reopen previous conversations
+- enforce simple per-user rate limiting
 
 Reads from:
 
@@ -106,6 +110,7 @@ Reads from:
 - `scores`
 - `ai_chat_conversations`
 - `ai_chat_messages`
+- `activity_logs`
 
 Writes to:
 
@@ -116,6 +121,31 @@ Frontend note:
 
 - Blade renders the page shell
 - React manages the chat interface and conversation history
+- AI responses can be rendered as markdown in the frontend
+
+### Activity logs
+
+Route:
+
+- `GET /activity`
+
+Controller:
+
+- `ActivityLogController`
+
+Purpose:
+
+- show recent workflow events across the system
+- help users understand what changed recently
+
+Reads from:
+
+- `activity_logs`
+- `users`
+
+Writes to:
+
+- none
 
 ### Topics
 
@@ -149,6 +179,7 @@ Reads from:
 Writes to:
 
 - `topics`
+- `activity_logs`
 
 ### Printable topic summary
 
@@ -202,6 +233,7 @@ Reads from:
 Writes to:
 
 - `registrations`
+- `activity_logs`
 
 Typical status transitions:
 
@@ -215,6 +247,7 @@ Routes:
 - `POST /registrations/{registration}/submission`
 - `DELETE /submissions/{submission}`
 - `GET /submissions/{submission}/download`
+- `PATCH /submissions/{submission}/review`
 
 Controller:
 
@@ -223,6 +256,7 @@ Controller:
 Purpose:
 
 - upload seminar report
+- review seminar report and leave feedback
 - delete seminar report
 - download seminar report
 
@@ -234,6 +268,7 @@ Reads from:
 Writes to:
 
 - `submissions`
+- `activity_logs`
 - file storage
 
 ### Presentations
@@ -323,6 +358,7 @@ Writes to:
 4. `GET /topics/{topic}`
 5. `POST /topics/{topic}/register`
 6. `POST /registrations/{registration}/submission`
+7. `PATCH /submissions/{submission}/review`
 7. `GET /dashboard`
 
 Tables touched:
@@ -332,6 +368,7 @@ Tables touched:
 - `topics`
 - `registrations`
 - `submissions`
+- `activity_logs`
 
 ### Lecturer journey
 
@@ -339,9 +376,10 @@ Tables touched:
 2. `GET /topics/create`
 3. `POST /topics`
 4. `PATCH /registrations/{registration}/status`
-5. `POST /registrations/{registration}/presentation`
-6. `POST /registrations/{registration}/score`
-7. `GET /topics/{topic}/summary`
+5. `PATCH /submissions/{submission}/review`
+6. `POST /registrations/{registration}/presentation`
+7. `POST /registrations/{registration}/score`
+8. `GET /topics/{topic}/summary`
 
 Tables touched:
 
@@ -351,6 +389,7 @@ Tables touched:
 - `registrations`
 - `presentations`
 - `scores`
+- `activity_logs`
 
 ### Admin journey
 
@@ -377,14 +416,17 @@ Tables touched:
 
 - register for a topic
 - upload a submission
+- read your own activity log entries
 
 ### Lecturer and admin actions
 
 - create and edit topics
 - approve registrations
+- review report submissions
 - schedule presentations
 - assign scores
 - open printable summary
+- view activity timeline
 
 ### Admin-only actions
 

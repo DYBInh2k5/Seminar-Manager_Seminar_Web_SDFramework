@@ -16,6 +16,7 @@
 /public/build
 /public/hot
 /public/storage
+/stitch_exports
 /storage/*.key
 /storage/pail
 /vendor

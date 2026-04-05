@@ -44,6 +44,10 @@
                             <span>{{ $item['label'] }}</span>
                         </a>
                     @endforeach
+                    <a href="{{ route('activity.index') }}" class="{{ request()->routeIs('activity.*') ? 'active' : '' }}">
+                        <span class="material-symbols-outlined">timeline</span>
+                        <span>Activity</span>
+                    </a>
                     @if (auth()->user()->isAdmin())
                         <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
                             <span class="material-symbols-outlined">group</span>
@@ -100,7 +104,7 @@
             @if ($errors->any())
                 <div class="alert danger">
                     <strong>Please review the following issues:</strong>
-                    <ul>
+                    <ul class="error-list">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach

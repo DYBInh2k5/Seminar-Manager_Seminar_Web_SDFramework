@@ -121,6 +121,16 @@
                                     <div class="muted small">
                                         Report: <a href="{{ route('submissions.download', $registration->submission) }}">{{ $registration->submission->original_name }}</a>
                                     </div>
+                                    <div class="muted small">
+                                        Review: {{ str_replace('_', ' ', $registration->submission->review_status) }}
+                                        · Revision {{ $registration->submission->revision_number }}
+                                    </div>
+                                    @if ($registration->submission->review_note)
+                                        <div class="note-box">
+                                            <div class="label">Lecturer feedback</div>
+                                            <p class="muted small">{{ $registration->submission->review_note }}</p>
+                                        </div>
+                                    @endif
                                 @endif
                                 @if ($registration->score)
                                     <div class="muted small">Score: {{ number_format($registration->score->score, 2) }}/10</div>
@@ -189,4 +199,28 @@
             </section>
         @endif
     </div>
+
+    <section class="card spaced-card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Activity</span>
+                <h2>Recent seminar actions</h2>
+            </div>
+            <a href="{{ route('activity.index') }}" class="button secondary">Open full log</a>
+        </div>
+
+        <div class="stack-list">
+            @forelse ($recentActivities as $activity)
+                <article class="list-item wide activity-item">
+                    <div>
+                        <strong>{{ $activity->description }}</strong>
+                        <div class="muted small">{{ $activity->user?->name ?? 'System' }} · {{ $activity->created_at->diffForHumans() }}</div>
+                    </div>
+                    <span class="badge">{{ str_replace('.', ' ', $activity->action) }}</span>
+                </article>
+            @empty
+                <p class="muted">No recent activity yet.</p>
+            @endforelse
+        </div>
+    </section>
 @endsection

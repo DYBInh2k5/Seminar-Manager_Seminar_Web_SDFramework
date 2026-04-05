@@ -6,6 +6,7 @@ use App\Models\AiChatConversation;
 use App\Models\User;
 use App\Support\SeminarAiChat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\RateLimiter;
 use Mockery;
 use Tests\TestCase;
 
@@ -112,5 +113,52 @@ class AiChatTest extends TestCase
         $response = $this->actingAs($otherUser)->getJson(route('ai-chat.conversations.show', $conversation));
 
         $response->assertForbidden();
+    }
+
+    public function test_quick_action_can_trigger_ai_chat_without_custom_message(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'student',
+        ]);
+
+        $mock = Mockery::mock(SeminarAiChat::class);
+        $mock->shouldReceive('reply')
+            ->once()
+            ->withArgs(fn (User $actor, string $message) => $actor->is($user)
+                && str_contains($message, 'Summarize my current seminar registrations'))
+            ->andReturn([
+                'reply' => 'You currently have one approved registration and one pending review.',
+                'response_id' => 'resp_quick_action',
+                'model' => 'gpt-4.1-mini',
+            ]);
+
+        $this->instance(SeminarAiChat::class, $mock);
+
+        $response = $this->actingAs($user)->postJson(route('ai-chat.store'), [
+            'action' => 'my_registrations',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('conversation.id', 1);
+        $response->assertJsonPath('reply', 'You currently have one approved registration and one pending review.');
+    }
+
+    public function test_ai_chat_is_rate_limited(): void
+    {
+        $user = User::factory()->create();
+        $rateLimitKey = 'ai-chat:' . $user->id;
+
+        RateLimiter::clear($rateLimitKey);
+
+        for ($i = 0; $i < 12; $i++) {
+            RateLimiter::hit($rateLimitKey, 60);
+        }
+
+        $response = $this->actingAs($user)->postJson(route('ai-chat.store'), [
+            'message' => 'Will this be blocked?',
+        ]);
+
+        $response->assertStatus(429);
+        $response->assertJsonPath('message', 'AI chat is receiving requests too quickly. Please wait a moment and try again.');
     }
 }
