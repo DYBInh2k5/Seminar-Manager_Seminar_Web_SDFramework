@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Seminar Manager' }}</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
@@ -21,6 +22,7 @@
                 <nav class="nav">
                     <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
                     <a href="{{ route('topics.index') }}" class="{{ request()->routeIs('topics.*') ? 'active' : '' }}">Seminar Topics</a>
+                    <a href="{{ route('ai-chat.index') }}" class="{{ request()->routeIs('ai-chat.*') ? 'active' : '' }}">AI Chat</a>
                     @if (auth()->user()->isAdmin())
                         <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">Users</a>
                     @endif

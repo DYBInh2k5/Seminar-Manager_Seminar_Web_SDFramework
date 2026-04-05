@@ -83,6 +83,7 @@ Responsibilities:
 Main controllers:
 
 - `AuthController`
+- `AiChatController`
 - `DashboardController`
 - `TopicController`
 - `RegistrationController`
@@ -106,6 +107,8 @@ Purpose:
 
 Main models:
 
+- `AiChatConversation`
+- `AiChatMessage`
 - `User`
 - `Topic`
 - `Registration`
@@ -122,11 +125,13 @@ Main location:
 Current support class:
 
 - `SeminarNotifier`
+- `SeminarAiChat`
 
 Purpose:
 
 - centralize lightweight notification behavior
 - keep controller code cleaner
+- integrate seminar-aware AI responses through an external provider
 
 ### Persistence Layer
 
@@ -167,6 +172,16 @@ Purpose:
 3. The controller validates score and comment.
 4. The `scores` table is created or updated.
 5. The student can then see the result in the UI.
+
+### AI chat flow
+
+1. A user opens the AI chat page.
+2. React loads recent conversations from Blade bootstrap data.
+3. The user sends a message.
+4. `AiChatController@store` saves the user message.
+5. `SeminarAiChat` builds project and seminar context, then calls the AI provider.
+6. The assistant reply is saved to the same conversation.
+7. The user can reopen the conversation later.
 
 ## Authorization Model
 
@@ -223,6 +238,7 @@ Current test coverage focuses on feature behavior instead of low-level unit logi
 Included areas:
 
 - page access
+- AI chat behavior and access control
 - topic creation and filtering
 - submission workflow
 - user management behavior

@@ -38,9 +38,11 @@ The fifth feature is presentation scheduling. Lecturers can schedule the seminar
 
 The sixth feature is grading. Lecturers can assign a final score and leave a comment for the student.
 
-The project also includes dashboard analytics, printable topic summary pages, and admin user management.
+The project also includes dashboard analytics, printable topic summary pages, admin user management, and a built-in AI chat assistant.
 
 For the frontend, I used a hybrid approach. The main application uses Laravel Blade, while the dashboard analytics section is enhanced with React for more interactive presentation.
+
+I also added an AI chat page where users can ask questions about the seminar workflow and the Laravel project itself. The chat keeps saved conversations and uses role-aware seminar context.
 
 ## Database Design
 

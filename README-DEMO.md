@@ -3,6 +3,7 @@
 ## Implemented features
 - Role-based login for admin, lecturer, and student
 - Dashboard overview with React-powered analytics and lecturer leaderboard
+- AI chat assistant for project and seminar guidance
 - Seminar topic CRUD
 - Topic search and filtering
 - Admin lecturer assignment for topics
@@ -40,6 +41,8 @@ This project currently uses:
 - The default Laravel `log` mail driver, so outgoing mail is written to logs rather than sent externally
 
 If the frontend assets are not running yet, the application still works because React is used as an enhancement layer instead of a hard requirement for the full UI.
+
+To use AI chat, add `OPENAI_API_KEY` in your `.env` file.
 
 If you need to reset the demo data:
 ```bash

@@ -34,6 +34,7 @@ Affected tables:
 Accessible only after login:
 
 - dashboard
+- ai chat
 - topics
 - registrations
 - submissions
@@ -75,6 +76,46 @@ Frontend note:
 
 - this route still returns a Blade page
 - React mounts inside the dashboard page for analytics only
+
+### AI chat
+
+Routes:
+
+- `GET /ai-chat`
+- `POST /ai-chat`
+- `POST /ai-chat/conversations`
+- `GET /ai-chat/conversations/{conversation}`
+
+Controller:
+
+- `AiChatController`
+
+Purpose:
+
+- render the AI chat page
+- create saved conversations
+- send user messages to the AI provider
+- reopen previous conversations
+
+Reads from:
+
+- `users`
+- `topics`
+- `registrations`
+- `presentations`
+- `scores`
+- `ai_chat_conversations`
+- `ai_chat_messages`
+
+Writes to:
+
+- `ai_chat_conversations`
+- `ai_chat_messages`
+
+Frontend note:
+
+- Blade renders the page shell
+- React manages the chat interface and conversation history
 
 ### Topics
 

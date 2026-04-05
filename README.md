@@ -25,6 +25,7 @@ Detailed project documentation is available in these files:
 - Presentation scheduling
 - Scoring and feedback
 - Dashboard analytics
+- AI chat assistant for seminar and project guidance
 - Admin user management
 - Printable topic summary page for browser PDF export
 - Notification hooks using Laravel mail
@@ -43,7 +44,9 @@ Detailed project documentation is available in these files:
 - `app/Http/Controllers` - application controllers
 - `app/Models` - Eloquent models
 - `app/Support/SeminarNotifier.php` - lightweight notification service
+- `app/Support/SeminarAiChat.php` - AI chat integration service
 - `resources/views` - Blade UI
+- `resources/js` - React-enhanced frontend modules
 - `database/migrations` - schema definition
 - `database/seeders` - demo data setup
 - `tests/Feature` - project behavior tests
@@ -112,6 +115,13 @@ copy .env.example .env
 php artisan key:generate
 ```
 
+Add your AI credentials if you want to use the built-in assistant:
+
+```bash
+OPENAI_API_KEY=your_key_here
+OPENAI_MODEL=gpt-4.1-mini
+```
+
 ### 3. Run database setup
 
 ```bash
@@ -156,6 +166,7 @@ Current coverage includes:
 
 - login page access
 - dashboard access
+- AI chat page and endpoint
 - report upload/delete flow
 - topic creation and filtering
 - printable summary access

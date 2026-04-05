@@ -120,6 +120,13 @@ Responsibilities:
 - registration status breakdown
 - lecturer activity summaries
 
+### AI Chat Assistant
+
+- authenticated users can open a built-in AI chat page
+- chat history is stored per user
+- users can reopen previous conversations
+- responses are guided by seminar workflow and role-aware context
+
 ### Admin User Management
 
 - admins create users
@@ -141,7 +148,8 @@ Responsibilities:
 7. Student uploads a seminar report.
 8. Lecturer schedules the presentation.
 9. Lecturer publishes score and feedback.
-10. Admin can monitor the whole process through the dashboard and user management pages.
+10. Users can ask the AI assistant for help about workflow, structure, and seminar usage.
+11. Admin can monitor the whole process through the dashboard and user management pages.
 
 ## Technical Summary
 

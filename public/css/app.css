@@ -96,10 +96,26 @@ th, td { padding: 14px 10px; border-bottom: 1px solid rgba(39, 28, 18, 0.08); ve
 .segmented-control { display: inline-flex; padding: 5px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255, 255, 255, 0.58); box-shadow: var(--shadow); }
 .segmented-button { border: 0; border-radius: 999px; padding: 10px 16px; background: transparent; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer; transition: 180ms ease; }
 .segmented-button.active { background: var(--primary-deep); color: #fff7ef; }
+.ai-chat-shell { display: block; }
+.ai-chat-grid { align-items: start; }
+.chat-transcript { display: grid; gap: 16px; max-height: 520px; overflow-y: auto; margin: 22px 0; padding-right: 4px; }
+.chat-bubble { display: grid; gap: 10px; padding: 18px; border-radius: 22px; border: 1px solid rgba(39, 28, 18, 0.08); background: rgba(255, 255, 255, 0.58); }
+.chat-bubble.user { background: rgba(186, 74, 26, 0.08); }
+.chat-bubble.assistant { background: rgba(31, 106, 91, 0.09); }
+.chat-bubble-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.chat-bubble-body { display: grid; gap: 10px; }
+.chat-bubble-body p { margin: 0; line-height: 1.55; }
+.chat-form { margin-top: 10px; }
+.prompt-card { width: 100%; padding: 16px 18px; border: 1px solid rgba(39, 28, 18, 0.08); border-radius: 18px; background: rgba(255, 255, 255, 0.5); color: var(--text); text-align: left; font: inherit; cursor: pointer; transition: 180ms ease; }
+.prompt-card:hover { transform: translateY(-1px); border-color: var(--primary); }
+.prompt-card:disabled { cursor: not-allowed; opacity: 0.7; transform: none; }
+.history-card.active { border-color: var(--primary-deep); background: rgba(186, 74, 26, 0.1); }
+.chat-note { margin-top: 20px; background: rgba(255, 250, 242, 0.9); }
 @media (max-width: 980px) {
     .shell, .grid.single, .grid.two, .stat-grid, .meta-grid, .filter-grid, .users-filter-grid { grid-template-columns: 1fr; }
     .sidebar { border-right: 0; border-bottom: 1px solid rgba(39, 28, 18, 0.08); }
     .analytics-toolbar, .analytics-row-head { flex-direction: column; align-items: flex-start; }
     .segmented-control { width: 100%; }
     .segmented-button { flex: 1; }
+    .chat-transcript { max-height: none; }
 }

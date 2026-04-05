@@ -129,6 +129,41 @@ Meaning:
 
 - Each registration can have at most one final score record
 
+### `ai_chat_conversations`
+
+Stores saved AI chat sessions for each authenticated user.
+
+Key columns:
+
+- `id`: primary key
+- `user_id`: foreign key to `users.id`
+- `title`: short label for the conversation
+- `last_response_id`: last AI provider response id for continuing context
+- `created_at`, `updated_at`
+
+Meaning:
+
+- One user can have many saved AI chat conversations
+
+### `ai_chat_messages`
+
+Stores the messages inside each saved AI chat conversation.
+
+Key columns:
+
+- `id`: primary key
+- `conversation_id`: foreign key to `ai_chat_conversations.id`
+- `role`: message sender, such as `user` or `assistant`
+- `content`: message body
+- `response_id`: optional AI provider response id
+- `meta`: optional structured metadata such as model info
+- `created_at`, `updated_at`
+
+Meaning:
+
+- One conversation can have many messages
+- Together, these tables provide AI chat persistence
+
 ## Supporting Laravel Tables
 
 These tables come from the standard Laravel setup and support framework features:
@@ -162,6 +197,7 @@ These tables come from the standard Laravel setup and support framework features
 - Failed queued job records
 
 For seminar understanding, these are less important than `users`, `topics`, `registrations`, `submissions`, `presentations`, and `scores`.
+The AI module adds `ai_chat_conversations` and `ai_chat_messages`, which are important for the assistant feature.
 
 ## Relationship Map
 
@@ -189,6 +225,13 @@ presentations
 
 scores
   |- belongsTo registrations
+
+ai_chat_conversations
+  |- belongsTo users
+  |- hasMany ai_chat_messages
+
+ai_chat_messages
+  |- belongsTo ai_chat_conversations
 ```
 
 ## ERD Diagram
@@ -197,10 +240,12 @@ scores
 erDiagram
     USERS ||--o{ TOPICS : creates
     USERS ||--o{ REGISTRATIONS : submits
+    USERS ||--o{ AI_CHAT_CONVERSATIONS : owns
     TOPICS ||--o{ REGISTRATIONS : receives
     REGISTRATIONS ||--o| SUBMISSIONS : has
     REGISTRATIONS ||--o| PRESENTATIONS : schedules
     REGISTRATIONS ||--o| SCORES : receives
+    AI_CHAT_CONVERSATIONS ||--o{ AI_CHAT_MESSAGES : contains
 
     USERS {
         bigint id PK
@@ -258,6 +303,26 @@ erDiagram
         bigint registration_id FK
         decimal score
         text comment
+        datetime created_at
+        datetime updated_at
+    }
+
+    AI_CHAT_CONVERSATIONS {
+        bigint id PK
+        bigint user_id FK
+        string title
+        string last_response_id
+        datetime created_at
+        datetime updated_at
+    }
+
+    AI_CHAT_MESSAGES {
+        bigint id PK
+        bigint conversation_id FK
+        string role
+        text content
+        string response_id
+        json meta
         datetime created_at
         datetime updated_at
     }
@@ -361,6 +426,8 @@ WHERE registrations.id = 1;
 
 The database structure maps directly to these models:
 
+- `App\Models\AiChatConversation`
+- `App\Models\AiChatMessage`
 - `App\Models\User`
 - `App\Models\Topic`
 - `App\Models\Registration`

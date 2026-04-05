@@ -36,6 +36,11 @@ class User extends Authenticatable
         return $this->hasMany(Registration::class, 'student_id');
     }
 
+    public function aiChatConversations(): HasMany
+    {
+        return $this->hasMany(AiChatConversation::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

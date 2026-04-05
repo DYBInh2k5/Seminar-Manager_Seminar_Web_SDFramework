@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AiChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\PresentationController;
@@ -21,6 +22,10 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
+    Route::get('/ai-chat', [AiChatController::class, 'index'])->name('ai-chat.index');
+    Route::post('/ai-chat', [AiChatController::class, 'store'])->name('ai-chat.store');
+    Route::post('/ai-chat/conversations', [AiChatController::class, 'createConversation'])->name('ai-chat.conversations.store');
+    Route::get('/ai-chat/conversations/{conversation}', [AiChatController::class, 'showConversation'])->name('ai-chat.conversations.show');
 
     Route::resource('topics', TopicController::class)->except(['create', 'store', 'edit', 'update', 'destroy']);
     Route::resource('topics', TopicController::class)
