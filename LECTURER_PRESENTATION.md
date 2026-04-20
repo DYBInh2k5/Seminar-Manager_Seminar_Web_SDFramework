@@ -2,6 +2,8 @@
 
 This file is a ready-to-speak outline for presenting the Seminar Manager project to a lecturer.
 
+https://app.agnes-ai.com/?conversationId=1776676960536297
+
 ## 1. Opening
 
 Hello teacher, today I will present my project called Seminar Manager.
