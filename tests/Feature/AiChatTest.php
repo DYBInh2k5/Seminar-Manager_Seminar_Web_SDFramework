@@ -161,4 +161,21 @@ class AiChatTest extends TestCase
         $response->assertStatus(429);
         $response->assertJsonPath('message', 'AI chat is receiving requests too quickly. Please wait a moment and try again.');
     }
+
+    public function test_ai_chat_works_in_local_demo_mode_without_openai_key(): void
+    {
+        config()->set('services.openai.api_key', null);
+
+        $user = User::factory()->create([
+            'role' => 'student',
+        ]);
+
+        $response = $this->actingAs($user)->postJson(route('ai-chat.store'), [
+            'message' => 'Explain the registration flow.',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('model', 'local-demo');
+        $this->assertStringContainsString('Registration flow', (string) $response->json('reply'));
+    }
 }

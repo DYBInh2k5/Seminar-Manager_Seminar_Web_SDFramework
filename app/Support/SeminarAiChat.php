@@ -9,6 +9,7 @@ use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class SeminarAiChat
@@ -18,7 +19,11 @@ class SeminarAiChat
         $apiKey = config('services.openai.api_key');
 
         if (! $apiKey) {
-            throw new RuntimeException('AI chat is not configured yet. Add OPENAI_API_KEY to your environment settings.');
+            return [
+                'reply' => $this->localReply($user, $message),
+                'response_id' => null,
+                'model' => 'local-demo',
+            ];
         }
 
         $payload = array_filter([
@@ -170,5 +175,106 @@ class SeminarAiChat
         $reply = trim(implode("\n\n", $segments));
 
         return $reply !== '' ? $reply : 'The AI assistant returned an empty response.';
+    }
+
+    protected function localReply(User $user, string $message): string
+    {
+        $lower = Str::of($message)->lower();
+
+        if ($lower->contains(['database', 'schema', 'table'])) {
+            return $this->localMarkdown(
+                '## Database summary',
+                [
+                    '- The system centers on `registrations`.',
+                    '- `submissions`, `presentations`, and `scores` all hang off a registration.',
+                    '- `activity_logs` records important workflow actions.',
+                ],
+                'If you want, I can also explain the ERD in a simpler way.'
+            );
+        }
+
+        if ($lower->contains(['registration', 'register'])) {
+            return $this->localMarkdown(
+                '## Registration flow',
+                [
+                    '- Student opens a topic page.',
+                    '- Student clicks `Register` for an open topic.',
+                    '- Lecturer reviews the request and approves or rejects it.',
+                ],
+                'This is the core flow used in the demo.'
+            );
+        }
+
+        if ($lower->contains(['report', 'submission', 'review'])) {
+            return $this->localMarkdown(
+                '## Report review flow',
+                [
+                    '- Student uploads a report file.',
+                    '- Lecturer can request changes or accept the submission.',
+                    '- The student can resubmit a newer revision after feedback.',
+                ],
+                'The review note is stored directly on the submission record.'
+            );
+        }
+
+        if ($lower->contains(['score', 'grading'])) {
+            return $this->localMarkdown(
+                '## Scoring flow',
+                [
+                    '- Lecturer enters a score between `0` and `10`.',
+                    '- An optional comment is stored with the score.',
+                    '- Students can see the result from the dashboard and topic page.',
+                ],
+                'This keeps grading connected to the registration workflow.'
+            );
+        }
+
+        if ($lower->contains(['dashboard', 'analytics'])) {
+            return $this->localMarkdown(
+                '## Dashboard analytics',
+                [
+                    '- Laravel renders the main page.',
+                    '- React renders the interactive analytics module.',
+                    '- The dashboard shows status, role, department, and category breakdowns.',
+                ],
+                'The analytics layer is a good example of Blade plus React working together.'
+            );
+        }
+
+        if ($lower->contains(['role', 'admin', 'lecturer', 'student'])) {
+            return $this->localMarkdown(
+                '## Role overview',
+                [
+                    '- `admin` manages users and oversees the whole system.',
+                    '- `lecturer` manages topics, reviews reports, schedules presentations, and assigns scores.',
+                    '- `student` registers, uploads reports, and tracks feedback.',
+                ],
+                'The permissions are kept simple so the workflow is easy to demonstrate.'
+            );
+        }
+
+        return $this->localMarkdown(
+            '## Seminar Manager',
+            [
+                '- This is the local demo assistant.',
+                '- It can explain the project structure, workflow, database, and roles.',
+                '- If you add `OPENAI_API_KEY`, it will switch to the OpenAI-powered assistant.',
+            ],
+            'Try asking about registrations, report review, scoring, dashboard analytics, or the database design.'
+        );
+    }
+
+    protected function localMarkdown(string $title, array $bullets, string $closing): string
+    {
+        $lines = [$title];
+
+        foreach ($bullets as $bullet) {
+            $lines[] = $bullet;
+        }
+
+        $lines[] = '';
+        $lines[] = $closing;
+
+        return implode("\n", $lines);
     }
 }

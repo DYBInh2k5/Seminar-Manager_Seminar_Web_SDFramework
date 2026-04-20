@@ -11,6 +11,8 @@ Detailed project documentation is available in these files:
 - `ARCHITECTURE.md` - Laravel structure and application layers
 - `API_FLOW.md` - route flow and database impact by feature
 - `SEMINAR_SCRIPT.md` - ready-to-use seminar presentation script
+- `LECTURER_PRESENTATION.md` - presentation outline for the lecturer
+- `DEPLOYMENT.md` - setup and deployment guide
 - `README-DEMO.md` - quick demo guide
 
 ## Features
@@ -58,6 +60,8 @@ Detailed project documentation is available in these files:
 - `ARCHITECTURE.md` - system architecture notes
 - `API_FLOW.md` - route and request flow guide
 - `SEMINAR_SCRIPT.md` - presentation speaking script
+- `LECTURER_PRESENTATION.md` - lecturer-facing presentation outline
+- `DEPLOYMENT.md` - deployment and production checklist
 
 ## Core Workflow
 
