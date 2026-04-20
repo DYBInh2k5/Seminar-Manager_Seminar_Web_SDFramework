@@ -22,6 +22,7 @@ class AiChatTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Seminar AI chat');
+        $response->assertSee('Your message');
     }
 
     public function test_ai_chat_endpoint_returns_mocked_reply(): void
@@ -177,5 +178,20 @@ class AiChatTest extends TestCase
         $response->assertOk();
         $response->assertJsonPath('model', 'local-demo');
         $this->assertStringContainsString('Registration flow', (string) $response->json('reply'));
+    }
+
+    public function test_local_demo_mode_uses_the_project_knowledge_base(): void
+    {
+        config()->set('services.openai.api_key', null);
+
+        $user = User::factory()->create([
+            'role' => 'student',
+        ]);
+
+        $result = app(SeminarAiChat::class)->reply($user, 'Can you explain the project overview?');
+
+        $this->assertSame('local-demo', $result['model']);
+        $this->assertStringContainsString('Seminar Manager is a Laravel-based academic workflow app', $result['reply']);
+        $this->assertStringContainsString('React is used mainly for dashboard analytics and AI chat', $result['reply']);
     }
 }

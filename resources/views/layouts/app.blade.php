@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite('resources/js/app.js')
+        @vite('resources/js/app.jsx')
     @endif
 </head>
 <body class="{{ request()->routeIs('login') ? 'guest-shell' : 'app-shell' }}">

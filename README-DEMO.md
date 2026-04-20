@@ -43,7 +43,10 @@ This project currently uses:
 If the frontend assets are not running yet, the application still works because React is used as an enhancement layer instead of a hard requirement for the full UI.
 
 To use the cloud AI assistant, add `OPENAI_API_KEY` in your `.env` file.
-If you do not set it, the chat still works in local demo mode with built-in project-aware replies.
+If you do not set it, the chat still works in local demo mode with a curated project knowledge base.
+
+The knowledge base is documented in:
+- `AI_KNOWLEDGE_BASE.md`
 
 If you need to reset the demo data:
 ```bash
@@ -53,3 +56,9 @@ php artisan migrate:fresh --seed
 ## Current verification status
 - `php artisan test` passes
 - `php artisan migrate:fresh --seed` passes
+
+## Manual smoke checklist
+
+If you want a step-by-step demo verification list, open:
+
+- `MANUAL_SMOKE_CHECKLIST.md`

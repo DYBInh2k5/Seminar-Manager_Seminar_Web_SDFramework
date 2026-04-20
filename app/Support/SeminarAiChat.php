@@ -9,7 +9,6 @@ use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 class SeminarAiChat
@@ -79,6 +78,7 @@ class SeminarAiChat
             'Prefer clean Markdown with short headings or bullet points when it improves clarity.',
             'If the user asks about project implementation, answer in terms of Laravel, Blade, React analytics, database tables, and role-based workflows.',
             'Do not invent private records or claim you changed data. You are a chat assistant, not an autonomous workflow executor.',
+            SeminarKnowledgeBase::contextBlock(),
             "Current user role: {$user->role}.",
             "Current user name: {$user->name}.",
             "Open seminar topics in the system: {$openTopics}.",
@@ -179,77 +179,13 @@ class SeminarAiChat
 
     protected function localReply(User $user, string $message): string
     {
-        $lower = Str::of($message)->lower();
+        $knowledge = SeminarKnowledgeBase::answerFor($message, $user->role);
 
-        if ($lower->contains(['database', 'schema', 'table'])) {
+        if ($knowledge) {
             return $this->localMarkdown(
-                '## Database summary',
-                [
-                    '- The system centers on `registrations`.',
-                    '- `submissions`, `presentations`, and `scores` all hang off a registration.',
-                    '- `activity_logs` records important workflow actions.',
-                ],
-                'If you want, I can also explain the ERD in a simpler way.'
-            );
-        }
-
-        if ($lower->contains(['registration', 'register'])) {
-            return $this->localMarkdown(
-                '## Registration flow',
-                [
-                    '- Student opens a topic page.',
-                    '- Student clicks `Register` for an open topic.',
-                    '- Lecturer reviews the request and approves or rejects it.',
-                ],
-                'This is the core flow used in the demo.'
-            );
-        }
-
-        if ($lower->contains(['report', 'submission', 'review'])) {
-            return $this->localMarkdown(
-                '## Report review flow',
-                [
-                    '- Student uploads a report file.',
-                    '- Lecturer can request changes or accept the submission.',
-                    '- The student can resubmit a newer revision after feedback.',
-                ],
-                'The review note is stored directly on the submission record.'
-            );
-        }
-
-        if ($lower->contains(['score', 'grading'])) {
-            return $this->localMarkdown(
-                '## Scoring flow',
-                [
-                    '- Lecturer enters a score between `0` and `10`.',
-                    '- An optional comment is stored with the score.',
-                    '- Students can see the result from the dashboard and topic page.',
-                ],
-                'This keeps grading connected to the registration workflow.'
-            );
-        }
-
-        if ($lower->contains(['dashboard', 'analytics'])) {
-            return $this->localMarkdown(
-                '## Dashboard analytics',
-                [
-                    '- Laravel renders the main page.',
-                    '- React renders the interactive analytics module.',
-                    '- The dashboard shows status, role, department, and category breakdowns.',
-                ],
-                'The analytics layer is a good example of Blade plus React working together.'
-            );
-        }
-
-        if ($lower->contains(['role', 'admin', 'lecturer', 'student'])) {
-            return $this->localMarkdown(
-                '## Role overview',
-                [
-                    '- `admin` manages users and oversees the whole system.',
-                    '- `lecturer` manages topics, reviews reports, schedules presentations, and assigns scores.',
-                    '- `student` registers, uploads reports, and tracks feedback.',
-                ],
-                'The permissions are kept simple so the workflow is easy to demonstrate.'
+                '## ' . $knowledge['title'],
+                $knowledge['bullets'],
+                $knowledge['closing']
             );
         }
 
@@ -258,6 +194,7 @@ class SeminarAiChat
             [
                 '- This is the local demo assistant.',
                 '- It can explain the project structure, workflow, database, and roles.',
+                '- It uses a curated knowledge base so answers stay close to the actual project.',
                 '- If you add `OPENAI_API_KEY`, it will switch to the OpenAI-powered assistant.',
             ],
             'Try asking about registrations, report review, scoring, dashboard analytics, or the database design.'

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -25,6 +26,8 @@ class AiChatController extends Controller
             'title' => 'AI Chat',
             'heading' => 'Seminar AI chat',
             'subheading' => 'Ask about seminar topics, registrations, scoring, or how this Laravel project works.',
+            'conversations' => $conversations,
+            'activeConversation' => $activeConversation,
             'chatBootstrap' => [
                 'user' => [
                     'name' => $user->name,
@@ -52,7 +55,7 @@ class AiChatController extends Controller
         ]);
     }
 
-    public function store(Request $request, SeminarAiChat $chat): JsonResponse
+    public function store(Request $request, SeminarAiChat $chat): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
             'message' => ['nullable', 'string', 'max:4000'],
@@ -64,9 +67,13 @@ class AiChatController extends Controller
         $action = $validated['action'] ?? null;
 
         if ($message === '' && ! $action) {
-            return response()->json([
-                'message' => 'Please enter a message or choose a quick action.',
-            ], 422);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Please enter a message or choose a quick action.',
+                ], 422);
+            }
+
+            return back()->with('status', 'Please enter a message or choose a quick action.');
         }
 
         $rateLimitKey = 'ai-chat:' . $request->user()->id;
@@ -129,31 +136,43 @@ class AiChatController extends Controller
 
             RateLimiter::hit($rateLimitKey, 60);
 
-            return response()->json([
-                'reply' => $result['reply'],
-                'response_id' => $result['response_id'] ?? null,
-                'model' => $result['model'] ?? null,
-                'conversation' => [
-                    'id' => $conversation->id,
-                    'title' => $conversation->title ?: 'New conversation',
-                ],
-                'message' => [
-                    'id' => $assistantMessage->id,
-                    'role' => 'assistant',
-                    'text' => $assistantMessage->content,
-                ],
-                'effective_message' => $effectiveMessage,
-            ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'reply' => $result['reply'],
+                    'response_id' => $result['response_id'] ?? null,
+                    'model' => $result['model'] ?? null,
+                    'conversation' => [
+                        'id' => $conversation->id,
+                        'title' => $conversation->title ?: 'New conversation',
+                    ],
+                    'message' => [
+                        'id' => $assistantMessage->id,
+                        'role' => 'assistant',
+                        'text' => $assistantMessage->content,
+                    ],
+                    'effective_message' => $effectiveMessage,
+                ]);
+            }
+
+            return back()->with('status', 'AI reply saved to the conversation.');
         } catch (RuntimeException $exception) {
-            return response()->json([
-                'message' => $exception->getMessage(),
-            ], 503);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $exception->getMessage(),
+                ], 503);
+            }
+
+            return back()->with('status', $exception->getMessage());
         } catch (\Throwable $exception) {
             report($exception);
 
-            return response()->json([
-                'message' => 'The AI assistant is temporarily unavailable.',
-            ], 500);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'The AI assistant is temporarily unavailable.',
+                ], 500);
+            }
+
+            return back()->with('status', 'The AI assistant is temporarily unavailable.');
         }
     }
 

@@ -13,6 +13,7 @@ Detailed project documentation is available in these files:
 - `SEMINAR_SCRIPT.md` - ready-to-use seminar presentation script
 - `LECTURER_PRESENTATION.md` - presentation outline for the lecturer
 - `DEPLOYMENT.md` - setup and deployment guide
+- `AI_KNOWLEDGE_BASE.md` - curated knowledge base used by the AI chat assistant
 - `README-DEMO.md` - quick demo guide
 
 ## Features
@@ -31,6 +32,7 @@ Detailed project documentation is available in these files:
 - Dashboard analytics
 - Department and category breakdown analytics
 - AI chat assistant for seminar and project guidance with quick actions, markdown replies, and rate limiting
+- AI chat assistant grounded by a curated project knowledge base
 - Admin user management
 - Printable topic summary page for browser PDF export
 - Notification hooks using Laravel mail
@@ -50,6 +52,7 @@ Detailed project documentation is available in these files:
 - `app/Models` - Eloquent models
 - `app/Support/SeminarNotifier.php` - lightweight notification service
 - `app/Support/SeminarAiChat.php` - AI chat integration service
+- `app/Support/SeminarKnowledgeBase.php` - curated facts used by the AI assistant
 - `resources/views` - Blade UI
 - `resources/js` - React-enhanced frontend modules
 - `database/migrations` - schema definition
@@ -62,6 +65,7 @@ Detailed project documentation is available in these files:
 - `SEMINAR_SCRIPT.md` - presentation speaking script
 - `LECTURER_PRESENTATION.md` - lecturer-facing presentation outline
 - `DEPLOYMENT.md` - deployment and production checklist
+- `AI_KNOWLEDGE_BASE.md` - chatbot knowledge base reference
 
 ## Core Workflow
 

@@ -41,7 +41,7 @@ Main layout:
 
 Main React files:
 
-- `resources/js/app.js`
+- `resources/js/app.jsx`
 - `resources/js/components/DashboardAnalytics.jsx`
 
 ### Routing Layer
