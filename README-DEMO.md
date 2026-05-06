@@ -62,3 +62,8 @@ php artisan migrate:fresh --seed
 If you want a step-by-step demo verification list, open:
 
 - `MANUAL_SMOKE_CHECKLIST.md`
+
+For the full documentation hub, open:
+
+- `DOCUMENTATION_INDEX.md`
+- `SEMINAR_PROJECT_PACK.md`

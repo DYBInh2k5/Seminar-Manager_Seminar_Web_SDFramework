@@ -126,4 +126,32 @@ class TopicManagementTest extends TestCase
 
         $this->assertDatabaseCount('registrations', 1);
     }
+
+    public function test_student_can_register_for_an_open_topic(): void
+    {
+        $lecturer = User::factory()->create(['role' => 'lecturer']);
+        $student = User::factory()->create(['role' => 'student']);
+
+        $topic = Topic::create([
+            'title' => 'Open registration topic',
+            'description' => 'This topic verifies the registration creation flow works end-to-end.',
+            'category' => 'Academic Systems',
+            'capacity' => 3,
+            'semester' => 'Fall 2026',
+            'difficulty' => 'intermediate',
+            'lecturer_id' => $lecturer->id,
+            'status' => 'open',
+        ]);
+
+        $response = $this->actingAs($student)->post(route('registrations.store', $topic));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('status', 'Your topic registration has been submitted.');
+
+        $this->assertDatabaseHas('registrations', [
+            'topic_id' => $topic->id,
+            'student_id' => $student->id,
+            'status' => 'pending',
+        ]);
+    }
 }

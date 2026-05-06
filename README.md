@@ -6,6 +6,8 @@ A Laravel-based student seminar management system built for classroom seminar/de
 
 Detailed project documentation is available in these files:
 
+- `DOCUMENTATION_INDEX.md` - entry point for the full documentation pack
+- `SEMINAR_PROJECT_PACK.md` - compact but detailed project summary for seminar use
 - `PROJECT_OVERVIEW.md` - business context, goals, roles, and use cases
 - `DATABASE.md` - database explanation, relationships, and ERD
 - `ARCHITECTURE.md` - Laravel structure and application layers

@@ -23,7 +23,7 @@ class RegistrationController extends Controller
             return back()->with('status', 'This topic has reached its registration capacity.');
         }
 
-        [$registration, $created] = tap(Registration::firstOrCreate(
+        $registration = Registration::firstOrNew(
             [
                 'topic_id' => $topic->id,
                 'student_id' => $request->user()->id,
@@ -31,7 +31,15 @@ class RegistrationController extends Controller
             [
                 'status' => 'pending',
             ]
-        ), fn ($registration) => $registration->load(['topic.lecturer', 'student']))->pipe(fn ($registration) => [$registration, $registration->wasRecentlyCreated]);
+        );
+
+        $created = ! $registration->exists;
+
+        if ($created) {
+            $registration->save();
+        }
+
+        $registration->load(['topic.lecturer', 'student']);
 
         if ($created) {
             SeminarNotifier::registrationSubmitted($registration);
