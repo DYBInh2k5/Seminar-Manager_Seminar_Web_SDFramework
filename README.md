@@ -81,6 +81,16 @@ Các file quan trọng nhất:
 
 ## Chạy project nhanh
 
+### Cách dễ nhất
+
+Chạy launcher:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run-demo.ps1 -Seed
+```
+
+### Cách thủ công
+
 Nếu muốn gõ ngắn trong PowerShell, tạo alias tạm `php84` trước:
 
 ```powershell

@@ -230,6 +230,14 @@ php84 artisan optimize:clear
 
 Nếu chỉ cần chạy nhanh để thuyết trình:
 
+### Cách 1: chạy launcher
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run-demo.ps1 -Seed
+```
+
+### Cách 2: chạy thủ công
+
 ```powershell
 cd "D:\HSU\2533Semester 3(2025-2026)\Phát triển Web sd Framework\Seminar\seminar-manager"
 php84 artisan boost:mcp

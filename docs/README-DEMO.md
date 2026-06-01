@@ -357,6 +357,24 @@ Nếu có key hợp lệ, app mới thử gọi OpenAI. Nhưng với seminar, ch
 
 Mở PowerShell tại thư mục `seminar-manager`, sau đó chạy:
 
+### Cách dễ nhất
+
+Chạy luôn file launcher:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run-demo.ps1 -Seed
+```
+
+Ý nghĩa:
+
+- tự clear cache
+- tự reset database demo nếu có `-Seed`
+- tự mở `boost:mcp`
+- tự mở Laravel server
+- tự mở Vite
+
+### Cách chạy thủ công
+
 Nếu muốn gõ ngắn, tạo alias tạm `php84` trước:
 
 ```powershell
