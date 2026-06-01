@@ -236,6 +236,14 @@ Nếu chỉ cần chạy nhanh để thuyết trình:
 powershell -ExecutionPolicy Bypass -File .\run-demo.ps1 -Seed
 ```
 
+Mình đã test thực tế cách này và nó đã:
+
+- clear cache
+- reset database demo
+- mở Boost MCP
+- mở Laravel server trên `http://127.0.0.1:8002`
+- mở Vite ở terminal riêng
+
 ### Cách 2: chạy thủ công
 
 ```powershell
@@ -259,6 +267,15 @@ Lưu ý khi copy lệnh:
 - không dán luôn dấu ``` vào PowerShell
 - phải đứng trong thư mục `seminar-manager` trước khi chạy `php84 artisan ...`
 - nếu lệnh `php84 artisan ...` báo PHP 8.3, hãy đổi sang đường dẫn PHP 8.4 đầy đủ như trên
+
+Quy trình mình đã kiểm tra thực tế:
+
+1. Chạy `powershell -ExecutionPolicy Bypass -File .\run-demo.ps1 -Seed`
+2. Đợi script báo đã sẵn sàng
+3. Mở `http://127.0.0.1:8002/login`
+4. Xác nhận trang login trả `200`
+5. Đăng nhập tài khoản demo
+6. Mở `AI Chat` và hỏi các câu về Boost
 
 
 

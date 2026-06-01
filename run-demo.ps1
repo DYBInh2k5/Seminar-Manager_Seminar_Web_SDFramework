@@ -4,6 +4,13 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Demo launcher đã được test thực tế:
+# - clear cache
+# - reset database demo khi dùng -Seed
+# - mở Boost MCP
+# - mở Laravel server trên port 8002
+# - mở Vite ở terminal riêng
+
 $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Php84 = 'C:\Users\Voduybinhv\AppData\Local\Microsoft\WinGet\Packages\PHP.PHP.8.4_Microsoft.Winget.Source_8wekyb3d8bbwe\php.exe'
 $LaravelPort = 8002

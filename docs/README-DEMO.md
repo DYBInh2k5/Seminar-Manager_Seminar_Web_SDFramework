@@ -373,6 +373,22 @@ powershell -ExecutionPolicy Bypass -File .\run-demo.ps1 -Seed
 - tự mở Laravel server
 - tự mở Vite
 
+Đây là cách mình đã chạy thực tế trên máy này:
+
+1. Mở PowerShell tại thư mục gốc `seminar-manager`
+2. Chạy `powershell -ExecutionPolicy Bypass -File .\run-demo.ps1 -Seed`
+3. Đợi script báo `Da san sang`
+4. Mở `http://127.0.0.1:8002/login`
+5. Đăng nhập bằng tài khoản demo
+6. Mở `AI Chat` để hỏi về Boost
+
+Kết quả kiểm tra thực tế:
+
+- `http://127.0.0.1:8002/login` trả `200`
+- `php84 artisan migrate:fresh --seed` chạy thành công
+- `php84 artisan boost:mcp` được khởi động ở terminal riêng
+- `npm run dev` chạy ở terminal riêng
+
 ### Cách chạy thủ công
 
 Nếu muốn gõ ngắn, tạo alias tạm `php84` trước:
