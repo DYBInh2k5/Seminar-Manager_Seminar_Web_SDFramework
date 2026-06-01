@@ -15,6 +15,7 @@ $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Php84 = 'C:\Users\Voduybinhv\AppData\Local\Microsoft\WinGet\Packages\PHP.PHP.8.4_Microsoft.Winget.Source_8wekyb3d8bbwe\php.exe'
 $LaravelPort = 8002
 $LaravelUrl = "http://127.0.0.1:$LaravelPort"
+$ProxyCleanup = "Remove-Item Env:ALL_PROXY,Env:GIT_HTTP_PROXY,Env:GIT_HTTPS_PROXY,Env:HTTP_PROXY,Env:HTTPS_PROXY -ErrorAction SilentlyContinue;"
 
 if (-not (Test-Path $Php84)) {
     throw "Khong tim thay PHP 8.4 tai: $Php84"
@@ -38,17 +39,17 @@ try {
 
     Start-Process powershell -ArgumentList @(
         '-NoExit','-Command',
-        "Set-Location '$RepoRoot'; & $phpCmd artisan boost:mcp"
+        "$ProxyCleanup Set-Location '$RepoRoot'; & $phpCmd artisan boost:mcp"
     )
 
     Start-Process powershell -ArgumentList @(
         '-NoExit','-Command',
-        "Set-Location '$RepoRoot'; npm run dev"
+        "$ProxyCleanup Set-Location '$RepoRoot'; npm run dev"
     )
 
     Start-Process powershell -ArgumentList @(
         '-NoExit','-Command',
-        "Set-Location '$RepoRoot'; & $phpCmd artisan serve --host=127.0.0.1 --port=$LaravelPort"
+        "$ProxyCleanup Set-Location '$RepoRoot'; & $phpCmd artisan serve --host=127.0.0.1 --port=$LaravelPort"
     )
 
     Write-Host "==> Da san sang. Mo $LaravelUrl/login" -ForegroundColor Green

@@ -6,6 +6,7 @@ use App\Models\AiChatConversation;
 use App\Models\User;
 use App\Support\SeminarAiChat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
 use Mockery;
 use Tests\TestCase;
@@ -166,6 +167,7 @@ class AiChatTest extends TestCase
     public function test_ai_chat_works_in_local_demo_mode_without_openai_key(): void
     {
         config()->set('services.openai.api_key', null);
+        config()->set('services.gemini.api_key', null);
 
         $user = User::factory()->create([
             'role' => 'student',
@@ -183,6 +185,7 @@ class AiChatTest extends TestCase
     public function test_html_form_submission_redirects_back_to_the_saved_conversation(): void
     {
         config()->set('services.openai.api_key', null);
+        config()->set('services.gemini.api_key', null);
 
         $user = User::factory()->create([
             'role' => 'student',
@@ -208,6 +211,7 @@ class AiChatTest extends TestCase
     public function test_local_demo_mode_uses_the_project_knowledge_base(): void
     {
         config()->set('services.openai.api_key', null);
+        config()->set('services.gemini.api_key', null);
 
         $user = User::factory()->create([
             'role' => 'student',
@@ -223,6 +227,7 @@ class AiChatTest extends TestCase
     public function test_local_demo_mode_answers_boost_specific_questions(): void
     {
         config()->set('services.openai.api_key', null);
+        config()->set('services.gemini.api_key', null);
 
         $user = User::factory()->create([
             'role' => 'lecturer',
@@ -233,5 +238,43 @@ class AiChatTest extends TestCase
         $this->assertSame('local-demo', $result['model']);
         $this->assertStringContainsString('Laravel Boost là lớp hỗ trợ AI dành cho Laravel', $result['reply']);
         $this->assertStringContainsString('AGENTS.md', $result['reply']);
+    }
+
+    public function test_gemini_mode_uses_gemini_api_when_key_is_present(): void
+    {
+        config()->set('services.gemini.api_key', 'test-gemini-key');
+        config()->set('services.gemini.base_url', 'https://generativelanguage.googleapis.com/v1beta');
+        config()->set('services.gemini.model', 'gemini-2.5-flash');
+
+        Http::fake([
+            'generativelanguage.googleapis.com/*:generateContent' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                [
+                                    'text' => '## Gemini demo reply'."\n".'- Laravel Boost là công cụ MCP server cho Laravel.'."\n\n".'Đây là câu trả lời từ Gemini.',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'lecturer',
+        ]);
+
+        $result = app(SeminarAiChat::class)->reply($user, 'Laravel Boost là gì?');
+
+        $this->assertSame('gemini-2.5-flash', $result['model']);
+        $this->assertStringContainsString('Gemini demo reply', $result['reply']);
+        $this->assertStringContainsString('Laravel Boost là công cụ MCP server cho Laravel', $result['reply']);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'generativelanguage.googleapis.com')
+                && $request['contents'][0]['parts'][0]['text'] !== '';
+        });
     }
 }

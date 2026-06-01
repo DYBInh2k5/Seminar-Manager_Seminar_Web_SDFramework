@@ -41,4 +41,10 @@ return [
         'model' => env('OPENAI_MODEL', 'gpt-4.1-mini'),
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash-lite'),
+    ],
+
 ];

@@ -7,12 +7,23 @@ use App\Models\Registration;
 use App\Models\Submission;
 use App\Models\Topic;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+use Throwable;
 
 class SeminarAiChat
 {
-    // reply() là điểm vào duy nhất cho phản hồi của trợ lý trong demo này.
+    // reply() là điểm vào chính cho phản hồi của trợ lý trong demo này.
     public function reply(User $user, string $message, ?string $previousResponseId = null): array
     {
+        if ($this->hasGeminiConfiguration()) {
+            try {
+                return $this->replyWithGemini($user, $message);
+            } catch (Throwable $throwable) {
+                report($throwable);
+            }
+        }
+
         return [
             'reply' => $this->localReply($user, $message),
             'response_id' => null,
@@ -122,20 +133,83 @@ class SeminarAiChat
         return "Ngữ cảnh của admin: số buổi bảo vệ sắp tới trong hệ thống: {$upcomingPresentations}. Số báo cáo đã chấp nhận: {$acceptedReports}. Số báo cáo cần chỉnh sửa: {$changesRequested}.";
     }
 
-    // Trích phần text phản hồi tốt nhất từ payload của OpenAI.
-    protected function extractReplyText(array $data): string
+    // Chọn Gemini khi có cấu hình API key và model.
+    protected function hasGeminiConfiguration(): bool
     {
-        $outputText = trim((string) data_get($data, 'output_text', ''));
+        return filled(config('services.gemini.api_key'));
+    }
 
-        if ($outputText !== '') {
-            return $outputText;
+    // replyWithGemini() gửi prompt kèm ngữ cảnh lên Gemini API.
+    protected function replyWithGemini(User $user, string $message): array
+    {
+        $baseUrl = rtrim((string) config('services.gemini.base_url', 'https://generativelanguage.googleapis.com/v1beta'), '/');
+        $model = (string) config('services.gemini.model', 'gemini-2.5-flash-lite');
+        $apiKey = (string) config('services.gemini.api_key');
+        $prompt = $this->instructions($user)."\n\nCâu hỏi của người dùng:\n".$message;
+
+        $payload = [
+            'contents' => [
+                [
+                    'role' => 'user',
+                    'parts' => [
+                        [
+                            'text' => $prompt,
+                        ],
+                    ],
+                ],
+            ],
+            'generationConfig' => [
+                'temperature' => 0.4,
+                'topP' => 0.9,
+                'maxOutputTokens' => 1024,
+            ],
+        ];
+
+        // Gemini đôi khi trả 503 khi tải cao, nên thử lại vài lần trước khi rơi về local-demo.
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
+            $response = Http::acceptJson()
+                ->withoutVerifying()
+                ->withOptions([
+                    'proxy' => null,
+                ])
+                ->withHeaders([
+                    'x-goog-api-key' => $apiKey,
+                ])
+                ->timeout(30)
+                ->post("{$baseUrl}/models/{$model}:generateContent", $payload);
+
+            if ($response->successful()) {
+                $reply = $this->extractGeminiReplyText($response->json());
+
+                return [
+                    'reply' => $reply,
+                    'response_id' => 'gemini-'.(string) Str::ulid(),
+                    'model' => $model,
+                ];
+            }
+
+            if ($response->status() !== 503 || $attempt === 3) {
+                $response->throw();
+            }
+
+            usleep(500000);
         }
 
+        return [
+            'reply' => $this->localReply($user, $message),
+            'response_id' => null,
+            'model' => 'local-demo',
+        ];
+    }
+
+    // extractGeminiReplyText() trích text từ payload Gemini.
+    protected function extractGeminiReplyText(array $data): string
+    {
         $segments = [];
 
-        foreach ((array) data_get($data, 'output', []) as $item) {
-            foreach ((array) data_get($item, 'content', []) as $content) {
-                $text = data_get($content, 'text');
+        foreach ((array) data_get($data, 'candidates', []) as $candidate) {
+            foreach ((array) data_get($candidate, 'content.parts', []) as $part) {
+                $text = data_get($part, 'text');
 
                 if (is_string($text) && trim($text) !== '') {
                     $segments[] = trim($text);
