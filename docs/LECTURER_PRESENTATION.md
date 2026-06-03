@@ -1,5 +1,7 @@
 # Bài Thuyết Trình Laravel Boost
 
+https://gamma.app/docs/Laravel-focused-MCP-server-cho-phat-trien-AI-assisted-rz6i3emmf2jl57a 
+
 File này dành cho buổi thuyết trình với giảng viên.
 
 **Trọng tâm là Laravel Boost**. Demo project chỉ là mã nguồn minh hoạ để Boost có ngữ cảnh thật.
